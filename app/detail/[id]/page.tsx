@@ -51,7 +51,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
   const isInProgress = requestData.status === RequestStatus.IN_PROGRESS;
 
   // アプリ内の現在日付（モック用固定値）
-  const APP_TODAY = new Date('2025-01-22T00:00:00');
+  const APP_TODAY = new Date('2026-01-22T00:00:00');
 
   const getDeadlineColor = () => {
     if (!requestData.submissionDeadline || requestData.status === RequestStatus.COMPLETED) return '';
