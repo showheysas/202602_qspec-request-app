@@ -105,14 +105,14 @@ export default function WindowContactConfirmPage() {
   };
 
   return (
-    <main className="min-h-screen bg-background py-12">
-      <div className="mx-auto max-w-7xl px-4">
-        <h1 className="text-3xl font-bold text-foreground mb-8">窓口担当者確認</h1>
+    <main className="bg-background py-4">
+      <div className="mx-auto max-w-full px-4">
+        <h1 className="text-2xl font-bold text-foreground mb-3">窓口担当者確認</h1>
 
         {/* Filter and Search */}
-        <div className="bg-card rounded-lg border border-border p-6 mb-6">
+        <div className="bg-card rounded-lg border border-border p-3 mb-3">
           <div className="flex items-center gap-4">
-            <label className="font-medium text-foreground">ステータス:</label>
+            <label className="font-medium text-sm text-foreground">ステータス:</label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
@@ -126,6 +126,7 @@ export default function WindowContactConfirmPage() {
               variant="outline"
               onClick={() => setStatusFilter('all')}
               className="ml-auto"
+              size="sm"
             >
               リセット
             </Button>
@@ -134,18 +135,18 @@ export default function WindowContactConfirmPage() {
 
         {/* Table */}
         <div className="bg-card rounded-lg border border-border overflow-hidden">
-          <table className="w-full">
+          <table className="w-full text-sm">
             <thead className="bg-secondary border-b border-border">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">依頼ID</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">依頼日</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">商品名</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">カテゴリ</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">事業分類</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">提出先</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">提出希望日</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">ステータス</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">アクション</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-foreground">依頼ID</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-foreground">依頼日</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-foreground">商品名</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-foreground">カテゴリ</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-foreground">事業分類</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-foreground">提出先</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-foreground">提出希望日</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-foreground">ステータス</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-foreground">アクション</th>
               </tr>
             </thead>
             <tbody>
@@ -154,15 +155,15 @@ export default function WindowContactConfirmPage() {
                   key={req.requestId}
                   className={idx % 2 === 0 ? 'bg-background' : 'bg-secondary'}
                 >
-                  <td className="px-6 py-4 text-sm text-foreground">{req.requestId}</td>
-                  <td className="px-6 py-4 text-sm text-foreground">{req.requestDate}</td>
-                  <td className="px-6 py-4 text-sm text-foreground">{req.productName}</td>
-                  <td className="px-6 py-4 text-sm text-foreground">{req.categories?.join(', ')}</td>
-                  <td className="px-6 py-4 text-sm text-foreground">{req.businessTypes?.join(', ')}</td>
-                  <td className="px-6 py-4 text-sm text-foreground">{req.submissionDestination}</td>
-                  <td className="px-6 py-4 text-sm text-foreground">{formatDate(req.submissionDeadline)}</td>
-                  <td className="px-6 py-4 text-sm">{getStatusBadge(req.status)}</td>
-                  <td className="px-6 py-4 text-sm">
+                  <td className="px-3 py-2 text-xs text-foreground">{req.requestId}</td>
+                  <td className="px-3 py-2 text-xs text-foreground">{req.requestDate}</td>
+                  <td className="px-3 py-2 text-xs text-foreground">{req.productName}</td>
+                  <td className="px-3 py-2 text-xs text-foreground">{req.categories?.join(', ')}</td>
+                  <td className="px-3 py-2 text-xs text-foreground">{req.businessTypes?.join(', ')}</td>
+                  <td className="px-3 py-2 text-xs text-foreground">{req.submissionDestination}</td>
+                  <td className="px-3 py-2 text-xs text-foreground">{formatDate(req.submissionDeadline)}</td>
+                  <td className="px-3 py-2 text-xs">{getStatusBadge(req.status)}</td>
+                  <td className="px-3 py-2 text-xs">
                     <Button
                       onClick={() => handleConfirmClick(req)}
                       className="bg-primary text-primary-foreground hover:bg-primary/90"
@@ -178,7 +179,7 @@ export default function WindowContactConfirmPage() {
         </div>
 
         {filteredRequests.length === 0 && (
-          <div className="text-center py-12 text-muted-foreground">
+          <div className="text-center py-8 text-muted-foreground">
             該当する依頼がありません
           </div>
         )}

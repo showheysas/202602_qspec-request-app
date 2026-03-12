@@ -15,8 +15,8 @@ export function Navigation() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-border">
-      <div className="max-w-7xl mx-auto px-4">
+    <nav className="flex-shrink-0 z-50 bg-white border-b border-border">
+      <div className="max-w-full mx-auto px-4">
         <div className="flex gap-1 overflow-x-auto">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
@@ -24,7 +24,7 @@ export function Navigation() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`px-4 py-3 font-medium whitespace-nowrap transition-colors border-b-2 ${
+                className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${
                   isActive
                     ? 'text-primary border-primary'
                     : 'text-muted-foreground border-transparent hover:bg-secondary'

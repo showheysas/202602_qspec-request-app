@@ -2,7 +2,7 @@ import { RequestForm } from '@/components/RequestForm';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-background py-12">
+    <main className="bg-background py-4">
       <RequestForm />
     </main>
   );

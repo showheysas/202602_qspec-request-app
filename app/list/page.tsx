@@ -101,18 +101,18 @@ export default function ListPage() {
   };
 
   return (
-    <main className="min-h-screen bg-background py-8 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">依頼一覧</h1>
-          <p className="text-muted-foreground">品質文書の依頼状況を確認できます</p>
+    <main className="bg-background py-4 px-4">
+      <div className="max-w-full mx-auto">
+        <div className="mb-3">
+          <h1 className="text-2xl font-bold text-foreground mb-1">依頼一覧</h1>
+          <p className="text-sm text-muted-foreground">品質文書の依頼状況を確認できます</p>
         </div>
 
         {/* Filters */}
-        <Card className="p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="p-3 mb-3">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-xs font-medium text-foreground mb-1">
                 商品名検索
               </label>
               <Input
@@ -124,7 +124,7 @@ export default function ListPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-xs font-medium text-foreground mb-1">
                 ステータス
               </label>
               <select
@@ -140,7 +140,7 @@ export default function ListPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-xs font-medium text-foreground mb-1">
                 カテゴリ
               </label>
               <select
@@ -173,40 +173,40 @@ export default function ListPage() {
         </Card>
 
         {/* Results info */}
-        <div className="mb-4 text-sm text-muted-foreground">
+        <div className="mb-2 text-xs text-muted-foreground">
           {filteredAndSortedRequests.length}件の依頼が表示されています
         </div>
 
         {/* Table */}
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full text-sm">
               <thead className="bg-muted border-b border-border">
                 <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-foreground cursor-pointer hover:bg-accent"
+                  <th className="px-3 py-2 text-left text-xs font-semibold text-foreground cursor-pointer hover:bg-accent"
                     onClick={() => handleSort('id')}>
                     依頼ID {sortField === 'id' && (sortOrder === 'asc' ? '↑' : '↓')}
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-foreground cursor-pointer hover:bg-accent"
+                  <th className="px-3 py-2 text-left text-xs font-semibold text-foreground cursor-pointer hover:bg-accent"
                     onClick={() => handleSort('createdDate')}>
                     作成日 {sortField === 'createdDate' && (sortOrder === 'asc' ? '↑' : '↓')}
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-foreground cursor-pointer hover:bg-accent"
+                  <th className="px-3 py-2 text-left text-xs font-semibold text-foreground cursor-pointer hover:bg-accent"
                     onClick={() => handleSort('productName')}>
                     商品名 {sortField === 'productName' && (sortOrder === 'asc' ? '↑' : '↓')}
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-foreground cursor-pointer hover:bg-accent"
+                  <th className="px-3 py-2 text-left text-xs font-semibold text-foreground cursor-pointer hover:bg-accent"
                     onClick={() => handleSort('alcoholCategory')}>
                     カテゴリ {sortField === 'alcoholCategory' && (sortOrder === 'asc' ? '↑' : '↓')}
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-foreground cursor-pointer hover:bg-accent"
+                  <th className="px-3 py-2 text-left text-xs font-semibold text-foreground cursor-pointer hover:bg-accent"
                     onClick={() => handleSort('status')}>
                     ステータス {sortField === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
+                  <th className="px-3 py-2 text-left text-xs font-semibold text-foreground">
                     依頼者
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
+                  <th className="px-3 py-2 text-left text-xs font-semibold text-foreground">
                     アクション
                   </th>
                 </tr>
@@ -220,30 +220,30 @@ export default function ListPage() {
                         idx % 2 === 0 ? 'bg-background' : 'bg-card'
                       }`}
                     >
-                      <td className="px-6 py-4 text-sm text-foreground font-mono">
+                      <td className="px-3 py-2 text-xs text-foreground font-mono">
                         {request.id}
                       </td>
-                      <td className="px-6 py-4 text-sm text-foreground">
+                      <td className="px-3 py-2 text-xs text-foreground">
                         {formatDate(request.createdDate)}
                       </td>
-                      <td className="px-6 py-4 text-sm text-foreground">
+                      <td className="px-3 py-2 text-xs text-foreground">
                         {request.productName}
                       </td>
-                      <td className="px-6 py-4 text-sm text-foreground">
+                      <td className="px-3 py-2 text-xs text-foreground">
                         {request.alcoholCategory}
                       </td>
-                      <td className="px-6 py-4 text-sm">
+                      <td className="px-3 py-2 text-xs">
                         <span
-                          className="px-3 py-1 rounded-full text-white text-xs font-semibold"
+                          className="px-2 py-0.5 rounded-full text-white text-xs font-semibold"
                           style={{ backgroundColor: statusColors[request.status as RequestStatus] }}
                         >
                           {getStatusLabel(request.status)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-foreground">
+                      <td className="px-3 py-2 text-xs text-foreground">
                         {request.requesterName}
                       </td>
-                      <td className="px-6 py-4 text-sm">
+                      <td className="px-3 py-2 text-xs">
                         <Link href={`/detail/${request.id}`}>
                           <Button variant="outline" size="sm">
                             詳細
@@ -254,7 +254,7 @@ export default function ListPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">
+                    <td colSpan={7} className="px-3 py-6 text-center text-muted-foreground">
                       該当する依頼がありません
                     </td>
                   </tr>
