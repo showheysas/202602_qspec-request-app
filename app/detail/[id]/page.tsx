@@ -51,11 +51,11 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
   const isInProgress = requestData.status === RequestStatus.IN_PROGRESS;
 
   // アプリ内の現在日付（モック用固定値）
-  const APP_TODAY = new Date('2026-01-25T00:00:00');
+  const APP_TODAY = new Date('2025-01-22T00:00:00');
 
-  const getDeadlineColor = (dateStr: string) => {
-    if (!dateStr) return '';
-    const dl = new Date(dateStr + 'T00:00:00');
+  const getDeadlineColor = () => {
+    if (!requestData.submissionDeadline || requestData.status === RequestStatus.COMPLETED) return '';
+    const dl = new Date(requestData.submissionDeadline + 'T00:00:00');
     const diff = (dl.getTime() - APP_TODAY.getTime()) / (1000 * 60 * 60 * 24);
     if (diff < 0) return 'text-red-600 font-bold';
     if (diff <= 3) return 'text-orange-500 font-bold';
@@ -319,7 +319,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">作成完了希望日</p>
-                  <p className={`font-medium ${getDeadlineColor(requestData.submissionDeadline) || 'text-foreground'}`}>{requestData.submissionDeadline}</p>
+                  <p className={`font-medium ${getDeadlineColor() || 'text-foreground'}`}>{requestData.submissionDeadline}</p>
                 </div>
                 <div className="col-span-2">
                   <p className="text-xs text-muted-foreground">依頼発信先</p>

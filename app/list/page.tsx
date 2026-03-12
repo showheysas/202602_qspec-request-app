@@ -58,7 +58,7 @@ export default function ListPage() {
   }, [allRequests]);
 
   // アプリ内の現在日付（モック用固定値）
-  const APP_TODAY = new Date('2026-01-25T00:00:00');
+  const APP_TODAY = new Date('2025-01-22T00:00:00');
 
   const filteredAndSortedRequests = useMemo(() => {
     const today = APP_TODAY;
@@ -169,8 +169,8 @@ export default function ListPage() {
     return date.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' });
   };
 
-  const getDeadlineColor = (dateStr: string) => {
-    if (!dateStr) return '';
+  const getDeadlineColor = (dateStr: string, status: string) => {
+    if (!dateStr || status === RequestStatus.COMPLETED) return '';
     const dl = new Date(dateStr + 'T00:00:00');
     const diff = (dl.getTime() - APP_TODAY.getTime()) / (1000 * 60 * 60 * 24);
     if (diff < 0) return 'text-red-600 font-bold'; // 超過
@@ -377,7 +377,7 @@ export default function ListPage() {
                       <td className="px-2 py-1.5 text-xs text-foreground">
                         {request.submissionDestination}
                       </td>
-                      <td className={`px-2 py-1.5 text-xs whitespace-nowrap ${getDeadlineColor(request.submissionDeadline) || 'text-foreground'}`}>
+                      <td className={`px-2 py-1.5 text-xs whitespace-nowrap ${getDeadlineColor(request.submissionDeadline, request.status) || 'text-foreground'}`}>
                         {formatDeadline(request.submissionDeadline)}
                       </td>
                       <td className="px-2 py-1.5 text-xs text-foreground">
