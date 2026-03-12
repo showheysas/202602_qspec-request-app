@@ -30,31 +30,31 @@ function createInProgressComments(
     {
       id: `${id}-c0`,
       author: windowContactName,
-      timestamp: new Date('2025-01-17T09:00:00'),
+      timestamp: new Date('2026-01-17T09:00:00'),
       content: `${productName}の${documentType}の作成依頼です。提出先は${submissionDestination}、提出期限は${submissionDeadline}となっております。ご対応よろしくお願いします。`,
     },
     {
       id: `${id}-c1`,
       author: windowContactName,
-      timestamp: new Date('2025-01-17T10:00:00'),
+      timestamp: new Date('2026-01-17T10:00:00'),
       content: `${documentType}の作成をお願いします。提出期限が近いため、お早めに対応いただけますと幸いです。`,
     },
     {
       id: `${id}-c2`,
       author: creatorName,
-      timestamp: new Date('2025-01-17T11:30:00'),
+      timestamp: new Date('2026-01-17T11:30:00'),
       content: `承りました。${documentType}の作成を開始します。内容を確認次第、ご連絡します。`,
     },
     {
       id: `${id}-c3`,
       author: creatorName,
-      timestamp: new Date('2025-01-18T11:15:00'),
+      timestamp: new Date('2026-01-18T11:15:00'),
       content: '作成中に気になる点がございます。原材料の記載について詳細を教えていただけますか？',
     },
     {
       id: `${id}-c4`,
       author: windowContactName,
-      timestamp: new Date('2025-01-18T14:45:00'),
+      timestamp: new Date('2026-01-18T14:45:00'),
       content: 'ご確認ありがとうございます。原材料の詳細は別途メールでお送りします。',
     },
   ];
@@ -69,74 +69,74 @@ export function getWindowContactRequests(): RequestData[] {
       categories: ['ビールテイスト'],
       businessTypes: ['家庭用'],
       submissionDestination: '〇〇商社',
-      submissionDeadline: '2025-01-22',
+      submissionDeadline: '2026-01-22',
     },
     {
       productName: 'ヱビスビール（2026年リニューアル）',
       categories: ['ビールテイスト'],
       businessTypes: ['家庭用', '業務用'],
       submissionDestination: '△△流通',
-      submissionDeadline: '2025-01-25',
+      submissionDeadline: '2026-01-25',
     },
     {
       productName: 'サッポロラガービール',
       categories: ['ビールテイスト'],
       businessTypes: ['業務用'],
       submissionDestination: '□□外食',
-      submissionDeadline: '2025-01-28',
+      submissionDeadline: '2026-01-28',
     },
     {
       productName: '男梅サワー',
       categories: ['RTD'],
       businessTypes: ['家庭用'],
       submissionDestination: '〇〇商社',
-      submissionDeadline: '2025-01-20',
+      submissionDeadline: '2026-01-20',
     },
     {
       productName: '濃いめのレモンサワーの素',
       categories: ['RTS'],
       businessTypes: ['家庭用'],
       submissionDestination: '◇◇商社',
-      submissionDeadline: '2025-01-23',
+      submissionDeadline: '2026-01-23',
     },
     {
       productName: 'こいむぎ',
       categories: ['和酒'],
       businessTypes: ['業務用'],
       submissionDestination: '■■外食',
-      submissionDeadline: '2025-01-26',
+      submissionDeadline: '2026-01-26',
     },
     {
       productName: 'バカルディラム',
       categories: ['バカルディ社製品'],
       businessTypes: ['家庭用'],
       submissionDestination: '▲▲商社',
-      submissionDeadline: '2025-01-21',
+      submissionDeadline: '2026-01-21',
     },
     {
       productName: 'デュワーズホワイトラベル',
       categories: ['輸入ワイン・洋酒'],
       businessTypes: ['業務用'],
       submissionDestination: '★★外食',
-      submissionDeadline: '2025-01-27',
+      submissionDeadline: '2026-01-27',
     },
     {
       productName: 'サンタ・リタ　スリー・メダルズ　メルロー',
       categories: ['輸入ワイン・洋酒'],
       businessTypes: ['家庭用'],
       submissionDestination: '◆◆商社',
-      submissionDeadline: '2025-01-24',
+      submissionDeadline: '2026-01-24',
     },
     {
       productName: 'グランポレール　余市ケルナー２０２５',
       categories: ['国内製造ワイン・洋酒'],
       businessTypes: ['業務用'],
       submissionDestination: '●●外食',
-      submissionDeadline: '2025-01-29',
+      submissionDeadline: '2026-01-29',
     },
   ];
 
-  const createdDate = new Date('2025-01-15');
+  const createdDate = new Date('2026-01-15');
 
   windowContactRequests.forEach((req, index) => {
     const uniqueId = `REQ-WC-${String(index + 1).padStart(3, '0')}`;
@@ -146,11 +146,11 @@ export function getWindowContactRequests(): RequestData[] {
     requests.push({
       id: uniqueId,
       requestId: uniqueId,
-      requestDate: '2025-01-15',
+      requestDate: '2026-01-15',
       requestDepartment: '営業企画部',
       requesterName: requester.name,
       requesterEmail: requester.email,
-      desiredDate: '2025-01-15',
+      desiredDate: '2026-01-15',
       productName: req.productName,
       productCode: `CODE-${index + 1}`,
       documentType: '商品規格書',
@@ -190,8 +190,8 @@ export function getDummyRequests(): RequestData[] {
   requests.push(...getWindowContactRequests());
 
   // REQ-WC-001/002/003をベースにした「作成中」データ3件
-  const wcCreatedDate = new Date('2025-01-15');
-  const wcInProgressDate = new Date('2025-01-17');
+  const wcCreatedDate = new Date('2026-01-15');
+  const wcInProgressDate = new Date('2026-01-17');
 
   const inProgressEntries = [
     {
@@ -200,7 +200,7 @@ export function getDummyRequests(): RequestData[] {
       categories: ['ビールテイスト'],
       businessTypes: ['家庭用'],
       submissionDestination: '〇〇商社',
-      submissionDeadline: '2025-01-22',
+      submissionDeadline: '2026-01-22',
       documentType: '商品規格書／商品カルテ',
     },
     {
@@ -209,7 +209,7 @@ export function getDummyRequests(): RequestData[] {
       categories: ['ビールテイスト'],
       businessTypes: ['家庭用', '業務用'],
       submissionDestination: '△△流通',
-      submissionDeadline: '2025-01-25',
+      submissionDeadline: '2026-01-25',
       documentType: 'eBASE',
     },
     {
@@ -218,7 +218,7 @@ export function getDummyRequests(): RequestData[] {
       categories: ['ビールテイスト'],
       businessTypes: ['業務用'],
       submissionDestination: '□□外食',
-      submissionDeadline: '2025-01-28',
+      submissionDeadline: '2026-01-28',
       documentType: '各種証明書',
     },
   ];
@@ -242,11 +242,11 @@ export function getDummyRequests(): RequestData[] {
     requests.push({
       id: entry.id,
       requestId: entry.id,
-      requestDate: '2025-01-15',
+      requestDate: '2026-01-15',
       requestDepartment: '営業企画部',
       requesterName: requester.name,
       requesterEmail: requester.email,
-      desiredDate: '2025-01-15',
+      desiredDate: '2026-01-15',
       productName: entry.productName,
 
       productCode: `CODE-IP-${entry.id.slice(-1)}`,
@@ -293,9 +293,9 @@ export function getDummyRequests(): RequestData[] {
   });
 
   // REQ-WC-006とREQ-WC-009の「完了」コピー
-  const wcCompletedBaseDate = new Date('2025-01-15');
-  const wcCompletedInProgressDate = new Date('2025-01-17');
-  const wcFinalDate = new Date('2025-01-23');
+  const wcCompletedBaseDate = new Date('2026-01-15');
+  const wcCompletedInProgressDate = new Date('2026-01-17');
+  const wcFinalDate = new Date('2026-01-23');
 
   const completedEntries = [
     {
@@ -304,7 +304,7 @@ export function getDummyRequests(): RequestData[] {
       categories: ['和酒'],
       businessTypes: ['業務用'],
       submissionDestination: '■■外食',
-      submissionDeadline: '2025-01-26',
+      submissionDeadline: '2026-01-26',
       documentType: '商品規格書／商品カルテ',
     },
     {
@@ -313,7 +313,7 @@ export function getDummyRequests(): RequestData[] {
       categories: ['輸入ワイン・洋酒'],
       businessTypes: ['家庭用'],
       submissionDestination: '◆◆商社',
-      submissionDeadline: '2025-01-24',
+      submissionDeadline: '2026-01-24',
       documentType: 'eBASE',
     },
   ];
@@ -347,11 +347,11 @@ export function getDummyRequests(): RequestData[] {
     requests.push({
       id: entry.id,
       requestId: entry.id,
-      requestDate: '2025-01-15',
+      requestDate: '2026-01-15',
       requestDepartment: '営業企画部',
       requesterName: requester.name,
       requesterEmail: requester.email,
-      desiredDate: '2025-01-15',
+      desiredDate: '2026-01-15',
       productName: entry.productName,
 
       productCode: `CODE-CP-${entry.id.slice(-2)}`,
@@ -396,7 +396,7 @@ export function getDummyRequests(): RequestData[] {
         {
           id: `${entry.id}-c5`,
           author: creatorName,
-          timestamp: new Date('2025-01-23T10:00:00'),
+          timestamp: new Date('2026-01-23T10:00:00'),
           content: `${entry.documentType}の作成が完了しました。ご確認ください。`,
         },
       ],
@@ -404,7 +404,7 @@ export function getDummyRequests(): RequestData[] {
         {
           id: `${entry.id}-doc-1`,
           documentType: DocumentType.EBASE,
-          registrationDate: new Date('2025-01-23'),
+          registrationDate: new Date('2026-01-23'),
           filePath: '/documents/sample-ebase.pdf',
         },
       ],

@@ -50,6 +50,18 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
   const isAwaitingWindow = requestData.status === RequestStatus.AWAITING_WINDOW;
   const isInProgress = requestData.status === RequestStatus.IN_PROGRESS;
 
+  // アプリ内の現在日付（モック用固定値）
+  const APP_TODAY = new Date('2026-01-25T00:00:00');
+
+  const getDeadlineColor = (dateStr: string) => {
+    if (!dateStr) return '';
+    const dl = new Date(dateStr + 'T00:00:00');
+    const diff = (dl.getTime() - APP_TODAY.getTime()) / (1000 * 60 * 60 * 24);
+    if (diff < 0) return 'text-red-600 font-bold';
+    if (diff <= 3) return 'text-orange-500 font-bold';
+    return '';
+  };
+
   // 依頼発信先を自動判定で算出
   const windowAssignResult = requestData.businessTypes?.length > 0 && requestData.categories?.length > 0
     ? assignWindowContact(requestData.businessTypes, requestData.categories)
@@ -307,7 +319,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">作成完了希望日</p>
-                  <p className="text-foreground font-medium">{requestData.submissionDeadline}</p>
+                  <p className={`font-medium ${getDeadlineColor(requestData.submissionDeadline) || 'text-foreground'}`}>{requestData.submissionDeadline}</p>
                 </div>
                 <div className="col-span-2">
                   <p className="text-xs text-muted-foreground">依頼発信先</p>
