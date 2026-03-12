@@ -3,9 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { requestFormSchema, RequestFormData, AlcoholCategory } from '@/lib/types';
-import { determineDepartment } from '@/lib/departmentLogic';
-import { isDeadlineWarning, formatJapaneseDate } from '@/lib/businessLogic';
+import { requestFormSchema, RequestFormData } from '@/lib/types';
+import { isDeadlineWarning } from '@/lib/businessLogic';
 import { assignWindowContact } from '@/utils/autoAssignLogic';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,14 +32,25 @@ const CATEGORIES = [
   'その他',
 ];
 
+// ダミーのログインユーザー情報（モック）
+const DUMMY_USER = {
+  name: '田中太郎',
+  email: 'tanaka@example.com',
+};
+
+function getTodayString() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export function RequestForm() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dialogType, setDialogType] = useState<'submit' | 'clear' | null>(null);
-  const [selectedDeadline, setSelectedDeadline] = useState<string>('');
   const [mounted, setMounted] = useState(false);
   const [businessTypes, setBusinessTypes] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [autoAssignedResult, setAutoAssignedResult] = useState<{
     windowDepartment: string;
     windowContacts: string[];
@@ -56,11 +66,13 @@ export function RequestForm() {
   } = useForm<RequestFormData>({
     resolver: zodResolver(requestFormSchema),
     defaultValues: {
-      alcoholCategory: AlcoholCategory.OTHER,
+      requesterName: DUMMY_USER.name,
+      requesterEmail: DUMMY_USER.email,
+      requestDate: getTodayString(),
+      productName: '黒ラベル',
     },
   });
 
-  const category = watch('alcoholCategory');
   const deadline = watch('submissionDeadline');
 
   useEffect(() => {
@@ -81,23 +93,27 @@ export function RequestForm() {
   }, [businessTypes, categories]);
 
   const showWarning = mounted && deadline && isDeadlineWarning(new Date(deadline));
-  const department = determineDepartment(category as AlcoholCategory);
 
   const onSubmit = async (data: RequestFormData) => {
     setIsSubmitting(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 500));
-      console.log('Form submitted:', data);
+      console.log('Form submitted:', data, 'files:', attachedFiles);
       toast({
         title: '成功',
         description: '依頼を提出しました',
         duration: 3000,
       });
-      reset();
-      setSelectedDeadline('');
+      reset({
+        requesterName: DUMMY_USER.name,
+        requesterEmail: DUMMY_USER.email,
+        requestDate: getTodayString(),
+        productName: '黒ラベル',
+      });
       setBusinessTypes([]);
       setCategories([]);
       setAutoAssignedResult(null);
+      setAttachedFiles([]);
     } catch (error) {
       toast({
         title: 'エラー',
@@ -112,11 +128,16 @@ export function RequestForm() {
   };
 
   const handleClear = () => {
-    reset();
-    setSelectedDeadline('');
+    reset({
+      requesterName: DUMMY_USER.name,
+      requesterEmail: DUMMY_USER.email,
+      requestDate: getTodayString(),
+      productName: '黒ラベル',
+    });
     setBusinessTypes([]);
     setCategories([]);
     setAutoAssignedResult(null);
+    setAttachedFiles([]);
     setDialogType(null);
   };
 
@@ -130,6 +151,16 @@ export function RequestForm() {
     setCategories((prev) =>
       prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
     );
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setAttachedFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setAttachedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -146,48 +177,26 @@ export function RequestForm() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-foreground mb-1">
-                    依頼者名 *
+                    依頼者名
                   </label>
                   <input
                     type="text"
                     {...register('requesterName')}
-                    className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="山田太郎"
+                    readOnly
+                    className="w-full rounded-md border border-border bg-muted/50 px-2 py-1.5 text-sm text-foreground focus:outline-none"
                   />
-                  {errors.requesterName && (
-                    <p className="text-xs text-destructive mt-0.5">{errors.requesterName.message}</p>
-                  )}
                 </div>
 
                 <div>
                   <label className="block text-xs font-medium text-foreground mb-1">
-                    連絡先メール *
+                    連絡先メール
                   </label>
                   <input
                     type="email"
                     {...register('requesterEmail')}
-                    className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="yamada@example.com"
+                    readOnly
+                    className="w-full rounded-md border border-border bg-muted/50 px-2 py-1.5 text-sm text-foreground focus:outline-none"
                   />
-                  {errors.requesterEmail && (
-                    <p className="text-xs text-destructive mt-0.5">{errors.requesterEmail.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-foreground mb-1">
-                    アルコール分類
-                  </label>
-                  <select
-                    {...register('alcoholCategory')}
-                    className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value={AlcoholCategory.BEER}>ビール</option>
-                    <option value={AlcoholCategory.RTDRTL}>RTD・RTL</option>
-                    <option value={AlcoholCategory.SAKE}>和酒</option>
-                    <option value={AlcoholCategory.WINE}>ワイン・洋酒</option>
-                    <option value={AlcoholCategory.OTHER}>その他</option>
-                  </select>
                 </div>
 
                 <div>
@@ -197,7 +206,8 @@ export function RequestForm() {
                   <input
                     type="date"
                     {...register('requestDate')}
-                    className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    readOnly
+                    className="w-full rounded-md border border-border bg-muted/50 px-2 py-1.5 text-sm text-foreground focus:outline-none"
                   />
                 </div>
               </div>
@@ -214,7 +224,7 @@ export function RequestForm() {
                     type="text"
                     {...register('productName')}
                     className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="キリン一番搾り"
+                    placeholder="黒ラベル"
                   />
                   {errors.productName && (
                     <p className="text-xs text-destructive mt-0.5">{errors.productName.message}</p>
@@ -303,6 +313,7 @@ export function RequestForm() {
                           <SelectItem value="ebase">eBASE</SelectItem>
                           <SelectItem value="certificate">各種証明書</SelectItem>
                           <SelectItem value="other">その他</SelectItem>
+                          <SelectItem value="unknown">不明</SelectItem>
                         </SelectContent>
                       </Select>
                     )}
@@ -330,7 +341,7 @@ export function RequestForm() {
 
               <div>
                 <label className="block text-xs font-medium text-foreground mb-1">
-                  提出希望日 *
+                  作成完了希望日 *
                 </label>
                 <input
                   type="date"
@@ -342,9 +353,12 @@ export function RequestForm() {
                     {errors.submissionDeadline.message}
                   </p>
                 )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  ※ 5営業日以降で選択してください。急ぎの場合は別途、本社担当者にご連絡お願いします。
+                </p>
                 {showWarning && (
                   <p className="text-xs text-accent font-medium mt-1 bg-accent/10 px-2 py-1 rounded">
-                    ⚠️ 提出希望日まで5営業日未満です
+                    ⚠ 作成完了希望日まで5営業日未満です
                   </p>
                 )}
               </div>
@@ -361,6 +375,35 @@ export function RequestForm() {
                 />
                 {errors.requestDetails && (
                   <p className="text-xs text-destructive mt-0.5">{errors.requestDetails.message}</p>
+                )}
+              </div>
+
+              {/* 添付文書 */}
+              <div>
+                <label className="block text-xs font-medium text-foreground mb-1">
+                  添付文書
+                </label>
+                <input
+                  type="file"
+                  multiple
+                  onChange={handleFileChange}
+                  className="w-full text-sm text-foreground file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+                />
+                {attachedFiles.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {attachedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between bg-muted/30 rounded px-2 py-1">
+                        <span className="text-xs text-foreground truncate">{file.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeFile(index)}
+                          className="text-xs text-destructive hover:underline ml-2 flex-shrink-0"
+                        >
+                          削除
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>

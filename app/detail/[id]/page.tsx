@@ -4,7 +4,7 @@ import { useState, use } from 'react';
 import Link from 'next/link';
 import { getRequestById, addComment, addCompletedDocument, updateRequestStatus } from '@/utils/dummyData';
 import { RequestData, RequestStatus, DocumentType } from '@/lib/types';
-import { assignCreator } from '@/utils/autoAssignLogic';
+import { assignCreator, assignWindowContact } from '@/utils/autoAssignLogic';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -22,13 +22,15 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
   const { toast } = useToast();
 
   const [requestData, setRequestData] = useState<RequestData | null>(() => getRequestById(id));
-  const [dialogType, setDialogType] = useState<'status' | 'document' | 'comment' | null>(null);
+  const [dialogType, setDialogType] = useState<'status' | 'document' | 'comment' | 'createRequest' | null>(null);
   const [newStatus, setNewStatus] = useState<RequestStatus>(requestData?.status || RequestStatus.AWAITING_WINDOW);
   const [newDocumentName, setNewDocumentName] = useState('');
   const [newComment, setNewComment] = useState('');
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
+  const [otherDocumentComment, setOtherDocumentComment] = useState('');
   const [creatorDepartment, setCreatorDepartment] = useState('');
   const [creators, setCreators] = useState<string[]>([]);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   if (!requestData) {
     return (
@@ -47,6 +49,11 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
 
   const isAwaitingWindow = requestData.status === RequestStatus.AWAITING_WINDOW;
   const isInProgress = requestData.status === RequestStatus.IN_PROGRESS;
+
+  // 依頼発信先を自動判定で算出
+  const windowAssignResult = requestData.businessTypes?.length > 0 && requestData.categories?.length > 0
+    ? assignWindowContact(requestData.businessTypes, requestData.categories)
+    : null;
 
   const getStatusBadgeColor = (status: RequestStatus) => {
     switch (status) {
@@ -67,17 +74,6 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
         return '作成中';
       case RequestStatus.COMPLETED:
         return '完了';
-    }
-  };
-
-  const getNextStatuses = (currentStatus: RequestStatus): RequestStatus[] => {
-    switch (currentStatus) {
-      case RequestStatus.AWAITING_WINDOW:
-        return [RequestStatus.IN_PROGRESS];
-      case RequestStatus.IN_PROGRESS:
-        return [RequestStatus.COMPLETED];
-      case RequestStatus.COMPLETED:
-        return [];
     }
   };
 
@@ -179,7 +175,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
     const creatorResult = assignCreator(requestData.categories, selectedDocuments);
 
     // ステータスを更新
-    updateRequestStatus(id, 'creator-processing');
+    updateRequestStatus(id, 'creator-processing' as RequestStatus);
 
     // リクエストに作成情報を保存
     requestData.status = 'creator-processing';
@@ -188,25 +184,19 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
     requestData.creatorDepartment = creatorResult.creatorDepartment;
     setRequestData({ ...requestData });
 
-    // トースト通知
-    toast({
-      title: '成功',
-      description: '作成依頼しました',
-      duration: 3000,
-    });
-
-    // ページをリロード
-    window.location.reload();
+    // ダイアログを閉じてから成功ダイアログを表示
+    setDialogType(null);
+    setShowSuccessDialog(true);
   };
 
-  // コメント欄JSX（窓口待ち・作成中/完了で共通利用）
+  // コメント欄JSX（全ステータスで共通利用）
   const commentSection = (
     <div className="bg-card rounded-lg border border-border p-4">
       <h2 className="text-lg font-semibold text-foreground mb-3">コメント欄</h2>
 
       {/* Comments List */}
       {requestData.comments && requestData.comments.length > 0 && (
-        <div className="mb-4 space-y-2">
+        <div className="mb-4 space-y-2 max-h-48 overflow-y-auto">
           {requestData.comments.map((comment) => (
             <div key={comment.id} className="border border-border rounded p-2">
               <div className="flex justify-between mb-1">
@@ -266,14 +256,14 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
               <p className="text-muted-foreground text-xs">{requestData.requestId}</p>
             </div>
           </div>
-          <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${getStatusBadgeColor(requestData.status)}`}>
-            {getStatusLabel(requestData.status)}
+          <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${getStatusBadgeColor(requestData.status as RequestStatus)}`}>
+            {getStatusLabel(requestData.status as RequestStatus)}
           </span>
         </div>
 
         {/* 2-column layout */}
         <div className="grid grid-cols-2 gap-4">
-          {/* Left column */}
+          {/* Left column: 依頼情報 + 作成依頼情報 + ステータス履歴 */}
           <div className="space-y-4">
             {/* Section 1: Request Info */}
             <div className="bg-card rounded-lg border border-border p-4">
@@ -316,15 +306,17 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                   <p className="text-foreground font-medium">{requestData.submissionDestination}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">提出希望日</p>
+                  <p className="text-xs text-muted-foreground">作成完了希望日</p>
                   <p className="text-foreground font-medium">{requestData.submissionDeadline}</p>
                 </div>
                 <div className="col-span-2">
-                  <p className="text-xs text-muted-foreground">窓口担当者</p>
+                  <p className="text-xs text-muted-foreground">依頼発信先</p>
                   <p className="text-foreground font-medium">
-                    {requestData.windowContacts?.length
-                      ? `${requestData.windowDepartment}　${requestData.windowContacts.join('、')}`
-                      : '-'}
+                    {windowAssignResult
+                      ? `${windowAssignResult.windowDepartment}　${windowAssignResult.windowContacts.join('、')}`
+                      : requestData.windowContacts?.length
+                        ? `${requestData.windowDepartment}　${requestData.windowContacts.join('、')}`
+                        : '-'}
                   </p>
                 </div>
                 <div className="col-span-2">
@@ -334,7 +326,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
               </div>
             </div>
 
-            {/* Section 2.5: Document Selection（窓口待ちのみ表示） */}
+            {/* Document Selection（窓口待ちのみ表示） */}
             {isAwaitingWindow && (
               <div className="bg-card rounded-lg border border-border p-4">
                 <h2 className="text-lg font-semibold text-foreground mb-3">作成文書選択</h2>
@@ -357,11 +349,26 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                       ))}
                     </div>
                   </div>
+                  {/* その他選択時のコメント入力欄 */}
+                  {selectedDocuments.includes('その他') && (
+                    <div className="mt-2">
+                      <label className="block text-xs font-medium text-foreground mb-1">
+                        「その他」の詳細
+                      </label>
+                      <textarea
+                        value={otherDocumentComment}
+                        onChange={(e) => setOtherDocumentComment(e.target.value)}
+                        placeholder="その他の文書について詳細を入力してください"
+                        rows={2}
+                        className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
-            {/* Section 2.6: 作成担当者自動判定結果（窓口待ち）/ 作成依頼先情報（作成中・完了） */}
+            {/* 作成担当者自動判定結果（窓口待ち）/ 作成依頼先情報（作成中・完了） */}
             {isAwaitingWindow && selectedDocuments.length > 0 && (
               <div className="bg-card rounded-lg border border-border p-4">
                 <h2 className="text-lg font-semibold text-foreground mb-3">作成担当者自動判定結果</h2>
@@ -424,7 +431,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                   作成担当者修正
                 </Button>
                 <Button
-                  onClick={handleCreateRequest}
+                  onClick={() => setDialogType('createRequest')}
                   className="bg-primary text-primary-foreground hover:bg-primary/90 flex-1"
                   size="sm"
                 >
@@ -432,20 +439,14 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                 </Button>
               </div>
             )}
-          </div>
 
-          {/* Right column */}
-          <div className="space-y-4">
-            {/* コメント欄（窓口待ち：作成担当者自動判定結果とボタンの間） */}
-            {isAwaitingWindow && commentSection}
-
-            {/* Section 3: Status History */}
+            {/* ステータス履歴 */}
             <div className="bg-card rounded-lg border border-border p-4">
               <h2 className="text-lg font-semibold text-foreground mb-3">ステータス履歴</h2>
               <div className="space-y-2">
                 {requestData.statusHistory?.map((history) => (
                   <div key={history.id} className="border-l-4 border-primary pl-3 py-1">
-                    <p className="font-semibold text-sm text-foreground">{getStatusLabel(history.status)}</p>
+                    <p className="font-semibold text-sm text-foreground">{getStatusLabel(history.status as RequestStatus)}</p>
                     <p className="text-xs text-muted-foreground">
                       {new Date(history.changedDate).toLocaleString('ja-JP')}
                     </p>
@@ -455,7 +456,22 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
               </div>
             </div>
 
-            {/* Section 5: Completed Documents（窓口待ちは非表示） */}
+            {/* Buttons */}
+            <div className="flex gap-3">
+              <Link href="/list" className="flex-1">
+                <Button variant="outline" className="w-full h-8 text-sm">
+                  一覧に戻る
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* Right column: コメント欄 + 完成文書 */}
+          <div className="space-y-4">
+            {/* コメント欄（全ステータス共通） */}
+            {commentSection}
+
+            {/* 完成文書の登録（窓口待ち以外） */}
             {!isAwaitingWindow && (
               <div className="bg-card rounded-lg border border-border p-4">
                 <h2 className="text-lg font-semibold text-foreground mb-3">
@@ -517,28 +533,49 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                 )}
               </div>
             )}
-
-            {/* Section 6: コメント欄（作成中・完了のみ表示） */}
-            {!isAwaitingWindow && commentSection}
-
-            {/* Section 7: Buttons */}
-            <div className="flex gap-3">
-              <Link href="/list" className="flex-1">
-                <Button variant="outline" className="w-full h-8 text-sm">
-                  一覧に戻る
-                </Button>
-              </Link>
-            </div>
           </div>
         </div>
 
         {/* Dialogs */}
+        <AlertDialog open={dialogType === 'createRequest'} onOpenChange={(open) => !open && setDialogType(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>作成依頼を送信しますか？</AlertDialogTitle>
+              <AlertDialogDescription>
+                選択した文書（{selectedDocuments.join(', ')}）の作成依頼を送信します。
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="flex gap-3">
+              <AlertDialogCancel>キャンセル</AlertDialogCancel>
+              <AlertDialogAction onClick={handleCreateRequest}>
+                送信
+              </AlertDialogAction>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={showSuccessDialog} onOpenChange={(open) => !open && setShowSuccessDialog(false)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>送信完了</AlertDialogTitle>
+              <AlertDialogDescription>
+                作成依頼を送信しました。作成担当者にて対応が開始されます。
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="flex gap-3 justify-end">
+              <AlertDialogAction onClick={() => setShowSuccessDialog(false)}>
+                OK
+              </AlertDialogAction>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
+
         <AlertDialog open={dialogType === 'status'} onOpenChange={(open) => !open && setDialogType(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>ステータスを更新しますか？</AlertDialogTitle>
               <AlertDialogDescription>
-                {getStatusLabel(requestData.status)} から {getStatusLabel(newStatus)} に変更します。
+                {getStatusLabel(requestData.status as RequestStatus)} から {getStatusLabel(newStatus)} に変更します。
               </AlertDialogDescription>
             </AlertDialogHeader>
             <div className="flex gap-3">

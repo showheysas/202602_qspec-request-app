@@ -95,7 +95,6 @@ export const requestFormSchema = z.object({
     .string()
     .min(1, 'メールアドレスは必須です')
     .email('有効なメールアドレスを入力してください'),
-  alcoholCategory: z.nativeEnum(AlcoholCategory).optional(),
   requestDate: z.string().optional(),
   productName: z
     .string()
@@ -104,7 +103,7 @@ export const requestFormSchema = z.object({
   productCode: z.string().optional(),
   documentType: z.string().min(1, '文書種別は必須です'),
   submissionDestination: z.string().min(1, '提出先は必須です'),
-  submissionDeadline: z.string().min(1, '提出希望日は必須です'),
+  submissionDeadline: z.string().min(1, '作成完了希望日は必須です'),
   requestDetails: z
     .string()
     .min(1, '依頼内容詳細は必須です')

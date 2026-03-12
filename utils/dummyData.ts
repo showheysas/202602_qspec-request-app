@@ -132,6 +132,7 @@ export function getWindowContactRequests(): RequestData[] {
 
   windowContactRequests.forEach((req, index) => {
     const uniqueId = `REQ-WC-${String(index + 1).padStart(3, '0')}`;
+    const windowAssign = assignWindowContact(req.businessTypes, req.categories);
 
     requests.push({
       id: uniqueId,
@@ -142,18 +143,16 @@ export function getWindowContactRequests(): RequestData[] {
       requesterEmail: 'tanaka@example.com',
       desiredDate: '2025-01-15',
       productName: req.productName,
-      alcoholCategory: 'ビール',
       productCode: `CODE-${index + 1}`,
       documentType: '商品規格書',
       submissionDestination: req.submissionDestination,
       requestDetails: '新商品のため、規格書を作成お願いします',
-      windowDepartment: '営業統括部',
-      assignedDepartment: '品質管理部',
+      windowDepartment: windowAssign.windowDepartment,
       status: 'window-contact-pending',
       businessTypes: req.businessTypes,
       categories: req.categories,
       documentsToCreate: [],
-      windowContacts: [],
+      windowContacts: windowAssign.windowContacts,
       creatorDepartment: '',
       creators: [],
       createdDate,
@@ -239,7 +238,7 @@ export function getDummyRequests(): RequestData[] {
       requesterEmail: 'tanaka@example.com',
       desiredDate: '2025-01-15',
       productName: entry.productName,
-      alcoholCategory: 'ビール',
+
       productCode: `CODE-IP-${entry.id.slice(-1)}`,
       documentType: entry.documentType,
       submissionDestination: entry.submissionDestination,
@@ -343,7 +342,7 @@ export function getDummyRequests(): RequestData[] {
       requesterEmail: 'tanaka@example.com',
       desiredDate: '2025-01-15',
       productName: entry.productName,
-      alcoholCategory: 'ビール',
+
       productCode: `CODE-CP-${entry.id.slice(-2)}`,
       documentType: entry.documentType,
       submissionDestination: entry.submissionDestination,
