@@ -8,6 +8,14 @@ import {
 } from '@/lib/types';
 import { assignWindowContact, assignCreator } from './autoAssignLogic';
 
+const DUMMY_REQUESTERS = [
+  { name: '田中太郎', email: 'tanaka@example.com' },
+  { name: '佐藤花子', email: 'sato@example.com' },
+  { name: '鈴木一郎', email: 'suzuki@example.com' },
+  { name: '高橋美咲', email: 'takahashi@example.com' },
+  { name: '渡辺健太', email: 'watanabe@example.com' },
+];
+
 function createInProgressComments(
   id: string,
   documentType: string,
@@ -133,14 +141,15 @@ export function getWindowContactRequests(): RequestData[] {
   windowContactRequests.forEach((req, index) => {
     const uniqueId = `REQ-WC-${String(index + 1).padStart(3, '0')}`;
     const windowAssign = assignWindowContact(req.businessTypes, req.categories);
+    const requester = DUMMY_REQUESTERS[index % DUMMY_REQUESTERS.length];
 
     requests.push({
       id: uniqueId,
       requestId: uniqueId,
       requestDate: '2025-01-15',
       requestDepartment: '営業企画部',
-      requesterName: '田中太郎',
-      requesterEmail: 'tanaka@example.com',
+      requesterName: requester.name,
+      requesterEmail: requester.email,
       desiredDate: '2025-01-15',
       productName: req.productName,
       productCode: `CODE-${index + 1}`,
@@ -214,7 +223,7 @@ export function getDummyRequests(): RequestData[] {
     },
   ];
 
-  inProgressEntries.forEach((entry) => {
+  inProgressEntries.forEach((entry, idx) => {
     const windowAssign = assignWindowContact(entry.businessTypes, entry.categories);
     const creatorAssign = assignCreator(entry.categories, [entry.documentType]);
     const nonGLWindowName =
@@ -228,14 +237,15 @@ export function getDummyRequests(): RequestData[] {
       creatorAssign.creators[0] ??
       '作成担当者';
     const creatorName = `${creatorAssign.creatorDepartment} ${nonGLCreatorName}`;
+    const requester = DUMMY_REQUESTERS[idx % DUMMY_REQUESTERS.length];
 
     requests.push({
       id: entry.id,
       requestId: entry.id,
       requestDate: '2025-01-15',
       requestDepartment: '営業企画部',
-      requesterName: '田中太郎',
-      requesterEmail: 'tanaka@example.com',
+      requesterName: requester.name,
+      requesterEmail: requester.email,
       desiredDate: '2025-01-15',
       productName: entry.productName,
 
@@ -308,7 +318,7 @@ export function getDummyRequests(): RequestData[] {
     },
   ];
 
-  completedEntries.forEach((entry) => {
+  completedEntries.forEach((entry, idx) => {
     const windowAssign = assignWindowContact(entry.businessTypes, entry.categories);
     const creatorAssign = assignCreator(entry.categories, [entry.documentType]);
     const nonGLWindowName =
@@ -322,6 +332,7 @@ export function getDummyRequests(): RequestData[] {
       creatorAssign.creators[0] ??
       '作成担当者';
     const creatorName = `${creatorAssign.creatorDepartment} ${nonGLCreatorName}`;
+    const requester = DUMMY_REQUESTERS[(idx + 3) % DUMMY_REQUESTERS.length];
 
     const inProgressComments = createInProgressComments(
       entry.id,
@@ -338,8 +349,8 @@ export function getDummyRequests(): RequestData[] {
       requestId: entry.id,
       requestDate: '2025-01-15',
       requestDepartment: '営業企画部',
-      requesterName: '田中太郎',
-      requesterEmail: 'tanaka@example.com',
+      requesterName: requester.name,
+      requesterEmail: requester.email,
       desiredDate: '2025-01-15',
       productName: entry.productName,
 
