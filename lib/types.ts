@@ -55,6 +55,28 @@ export interface StatusHistory {
   note?: string;
 }
 
+// eBASE詳細情報
+export interface EbaseDetails {
+  productName: string;
+  specLink: string;
+  drawing: string;
+  fileNames: string[];
+  designNote: string;
+  tempImage: string;
+  packaging: string;
+}
+
+// 各種証明書詳細情報
+export interface CertificateDetails {
+  destName: string;
+  certType: string;
+  itemName: string;
+  copies: string;
+  sealRequired: string;
+  originalNeeded: string;
+  shipTo: string;
+}
+
 // Product entry interface
 export interface ProductEntry {
   name: string;
@@ -88,6 +110,8 @@ export interface RequestData {
   statusHistory: StatusHistory[];
   comments: Comment[];
   completedDocuments: CompletedDocument[];
+  ebaseDetails?: EbaseDetails;
+  certificateDetails?: CertificateDetails;
 }
 
 // Request form schema

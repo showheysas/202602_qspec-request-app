@@ -6,6 +6,8 @@ import {
   CompletedDocument,
   StatusHistory,
   ProductEntry,
+  EbaseDetails,
+  CertificateDetails,
 } from '@/lib/types';
 import { assignWindowContact, assignCreator } from './autoAssignLogic';
 
@@ -204,7 +206,17 @@ export function getDummyRequests(): RequestData[] {
   const wcCreatedDate = new Date('2026-01-15');
   const wcInProgressDate = new Date('2026-01-17');
 
-  const inProgressEntries = [
+  const inProgressEntries: Array<{
+    id: string;
+    products: ProductEntry[];
+    categories: string[];
+    businessTypes: string[];
+    submissionDestination: string;
+    submissionDeadline: string;
+    documentType: string;
+    ebaseDetails?: EbaseDetails;
+    certificateDetails?: CertificateDetails;
+  }> = [
     {
       id: 'REQ-WC-001-IP',
       products: [{ name: '黒ラベル350ml', code: 'BL-350' }],
@@ -225,6 +237,15 @@ export function getDummyRequests(): RequestData[] {
       submissionDestination: '△△流通',
       submissionDeadline: '2026-01-25',
       documentType: 'eBASE',
+      ebaseDetails: {
+        productName: 'ヱビスビール（2026年リニューアル）350ml缶・500ml缶、ヱビスビール マイスター 350ml缶',
+        specLink: 'https://internal.example.com/specs/ebisu-2026',
+        drawing: 'GAZO-WEB「ヱビス2026」フォルダに格納済み',
+        fileNames: ['ヱビス2026_展開図.pdf', 'マイスター_立体図.pdf'],
+        designNote: '「NEW」マーク追加、リニューアルスリーブ使用',
+        tempImage: '背面画像が仮、確定予定 2026/02/10',
+        packaging: '',
+      },
     },
     {
       id: 'REQ-WC-003-IP',
@@ -234,6 +255,15 @@ export function getDummyRequests(): RequestData[] {
       submissionDestination: '□□外食',
       submissionDeadline: '2026-01-28',
       documentType: '各種証明書',
+      certificateDetails: {
+        destName: '株式会社□□外食サービス',
+        certType: 'アレルゲン不使用証明書（特定原材料7品目）',
+        itemName: 'サッポロ生ビール黒ラベル 樽20L',
+        copies: '2部',
+        sealRequired: '要',
+        originalNeeded: 'あり',
+        shipTo: '大阪支社 業務営業部 中村健一',
+      },
     },
   ];
 
@@ -304,6 +334,8 @@ export function getDummyRequests(): RequestData[] {
         creatorName,
       ),
       completedDocuments: [],
+      ebaseDetails: entry.ebaseDetails,
+      certificateDetails: entry.certificateDetails,
     });
   });
 
@@ -312,7 +344,17 @@ export function getDummyRequests(): RequestData[] {
   const wcCompletedInProgressDate = new Date('2026-01-17');
   const wcFinalDate = new Date('2026-01-23');
 
-  const completedEntries = [
+  const completedEntries: Array<{
+    id: string;
+    products: ProductEntry[];
+    categories: string[];
+    businessTypes: string[];
+    submissionDestination: string;
+    submissionDeadline: string;
+    documentType: string;
+    ebaseDetails?: EbaseDetails;
+    certificateDetails?: CertificateDetails;
+  }> = [
     {
       id: 'REQ-WC-006-CP',
       products: [{ name: 'こいむぎ', code: 'KM-720' }],
@@ -330,6 +372,15 @@ export function getDummyRequests(): RequestData[] {
       submissionDestination: '◆◆商社',
       submissionDeadline: '2026-01-24',
       documentType: 'eBASE',
+      ebaseDetails: {
+        productName: 'サンタ・リタ スリー・メダルズ メルロー 750ml',
+        specLink: 'https://internal.example.com/specs/santa-rita-merlot',
+        drawing: '本社掲示板「輸入ワイン2026」フォルダに格納済み',
+        fileNames: ['サンタリタ_メルロー_ラベル展開図.pdf'],
+        designNote: '',
+        tempImage: '',
+        packaging: '',
+      },
     },
   ];
 
@@ -422,6 +473,8 @@ export function getDummyRequests(): RequestData[] {
           filePath: '/documents/sample-ebase.pdf',
         },
       ],
+      ebaseDetails: entry.ebaseDetails,
+      certificateDetails: entry.certificateDetails,
     });
   });
 
