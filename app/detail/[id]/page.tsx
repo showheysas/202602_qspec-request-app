@@ -368,21 +368,19 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                       ))}
                     </div>
                   </div>
-                  {/* その他選択時のコメント入力欄 */}
-                  {selectedDocuments.includes('その他') && (
-                    <div className="mt-2">
-                      <label className="block text-xs font-medium text-foreground mb-1">
-                        「その他」の詳細
-                      </label>
-                      <textarea
-                        value={otherDocumentComment}
-                        onChange={(e) => setOtherDocumentComment(e.target.value)}
-                        placeholder="その他の文書について詳細を入力してください"
-                        rows={2}
-                        className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  )}
+                  {/* 作成依頼詳細 */}
+                  <div className="mt-2">
+                    <label className="block text-xs font-medium text-foreground mb-1">
+                      作成依頼詳細（証明書の種類、アイテムなど）
+                    </label>
+                    <textarea
+                      value={otherDocumentComment}
+                      onChange={(e) => setOtherDocumentComment(e.target.value)}
+                      placeholder="証明書の種類やアイテム等、詳細を入力してください"
+                      rows={2}
+                      className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
                 </div>
               </div>
             )}
