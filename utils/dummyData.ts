@@ -5,6 +5,7 @@ import {
   Comment,
   CompletedDocument,
   StatusHistory,
+  ProductEntry,
 } from '@/lib/types';
 import { assignWindowContact, assignCreator } from './autoAssignLogic';
 
@@ -19,19 +20,18 @@ const DUMMY_REQUESTERS = [
 function createInProgressComments(
   id: string,
   documentType: string,
-  productName: string,
+  productNames: string,
   submissionDestination: string,
   submissionDeadline: string,
   windowContactName: string,
   creatorName: string,
 ): Comment[] {
   return [
-    // 窓口担当者→作成担当者への引き継ぎコメント（窓口待ち→作成中の遷移時）
     {
       id: `${id}-c0`,
       author: windowContactName,
       timestamp: new Date('2026-01-17T09:00:00'),
-      content: `${productName}の${documentType}の作成依頼です。提出先は${submissionDestination}、提出期限は${submissionDeadline}となっております。ご対応よろしくお願いします。`,
+      content: `${productNames}の${documentType}の作成依頼です。提出先は${submissionDestination}、提出期限は${submissionDeadline}となっております。ご対応よろしくお願いします。`,
     },
     {
       id: `${id}-c1`,
@@ -65,74 +65,84 @@ export function getWindowContactRequests(): RequestData[] {
 
   const windowContactRequests = [
     {
-      productName: '黒ラベル350ml',
+      products: [{ name: '黒ラベル350ml', code: 'BL-350' }],
       categories: ['ビールテイスト'],
       businessTypes: ['家庭用'],
       submissionDestination: '〇〇商社',
       submissionDeadline: '2026-01-22',
+      documentType: '商品規格書',
     },
     {
-      productName: 'ヱビスビール（2026年リニューアル）',
+      products: [{ name: 'ヱビスビール（2026年リニューアル）', code: 'EB-2026' }],
       categories: ['ビールテイスト'],
       businessTypes: ['家庭用', '業務用'],
       submissionDestination: '△△流通',
       submissionDeadline: '2026-01-25',
+      documentType: '商品規格書',
     },
     {
-      productName: 'サッポロラガービール',
+      products: [],
       categories: ['ビールテイスト'],
       businessTypes: ['業務用'],
       submissionDestination: '□□外食',
       submissionDeadline: '2026-01-28',
+      documentType: '各種証明書',
     },
     {
-      productName: '男梅サワー',
+      products: [{ name: '男梅サワー', code: 'UMS-500' }],
       categories: ['RTD'],
       businessTypes: ['家庭用'],
       submissionDestination: '〇〇商社',
       submissionDeadline: '2026-01-20',
+      documentType: '商品規格書',
     },
     {
-      productName: '濃いめのレモンサワーの素',
+      products: [{ name: '濃いめのレモンサワーの素', code: 'KLS-700' }],
       categories: ['RTS'],
       businessTypes: ['家庭用'],
       submissionDestination: '◇◇商社',
       submissionDeadline: '2026-01-23',
+      documentType: '商品規格書',
     },
     {
-      productName: 'こいむぎ',
+      products: [{ name: 'こいむぎ', code: 'KM-720' }],
       categories: ['和酒'],
       businessTypes: ['業務用'],
       submissionDestination: '■■外食',
       submissionDeadline: '2026-01-26',
+      documentType: '商品規格書',
     },
     {
-      productName: 'バカルディラム',
+      products: [],
       categories: ['バカルディ社製品'],
       businessTypes: ['家庭用'],
       submissionDestination: '▲▲商社',
       submissionDeadline: '2026-01-21',
+      documentType: '各種証明書',
     },
     {
-      productName: 'デュワーズホワイトラベル',
+      products: [{ name: 'デュワーズホワイトラベル', code: 'DWL-700' }],
       categories: ['輸入ワイン・洋酒'],
       businessTypes: ['業務用'],
       submissionDestination: '★★外食',
       submissionDeadline: '2026-01-27',
+      documentType: '商品規格書',
     },
     {
-      productName: 'サンタ・リタ　スリー・メダルズ　メルロー',
+      products: [{ name: 'サンタ・リタ　スリー・メダルズ　メルロー', code: 'SR-ML-750' }],
       categories: ['輸入ワイン・洋酒'],
       businessTypes: ['家庭用'],
       submissionDestination: '◆◆商社',
       submissionDeadline: '2026-01-24',
+      documentType: 'eBASE',
     },
     {
-      productName: 'グランポレール　余市ケルナー２０２５',
+      products: [{ name: 'グランポレール　余市ケルナー２０２５', code: 'GP-YK-750' }],
       categories: ['国内製造ワイン・洋酒'],
       businessTypes: ['業務用'],
       submissionDestination: '●●外食',
       submissionDeadline: '2026-01-29',
+      documentType: '商品規格書',
     },
   ];
 
@@ -151,11 +161,12 @@ export function getWindowContactRequests(): RequestData[] {
       requesterName: requester.name,
       requesterEmail: requester.email,
       desiredDate: '2026-01-15',
-      productName: req.productName,
-      productCode: `CODE-${index + 1}`,
-      documentType: '商品規格書',
+      products: req.products,
+      documentType: req.documentType,
       submissionDestination: req.submissionDestination,
-      requestDetails: '新商品のため、規格書を作成お願いします',
+      requestDetails: req.products.length > 0
+        ? '新商品のため、規格書を作成お願いします'
+        : '証明書の発行をお願いします',
       windowDepartment: windowAssign.windowDepartment,
       status: 'window-contact-pending',
       businessTypes: req.businessTypes,
@@ -196,7 +207,7 @@ export function getDummyRequests(): RequestData[] {
   const inProgressEntries = [
     {
       id: 'REQ-WC-001-IP',
-      productName: '黒ラベル350ml',
+      products: [{ name: '黒ラベル350ml', code: 'BL-350' }],
       categories: ['ビールテイスト'],
       businessTypes: ['家庭用'],
       submissionDestination: '〇〇商社',
@@ -205,7 +216,10 @@ export function getDummyRequests(): RequestData[] {
     },
     {
       id: 'REQ-WC-002-IP',
-      productName: 'ヱビスビール（2026年リニューアル）',
+      products: [
+        { name: 'ヱビスビール（2026年リニューアル）', code: 'EB-2026' },
+        { name: 'ヱビスビール　マイスター', code: 'EB-MS-350' },
+      ],
       categories: ['ビールテイスト'],
       businessTypes: ['家庭用', '業務用'],
       submissionDestination: '△△流通',
@@ -214,7 +228,7 @@ export function getDummyRequests(): RequestData[] {
     },
     {
       id: 'REQ-WC-003-IP',
-      productName: 'サッポロラガービール',
+      products: [],
       categories: ['ビールテイスト'],
       businessTypes: ['業務用'],
       submissionDestination: '□□外食',
@@ -238,6 +252,7 @@ export function getDummyRequests(): RequestData[] {
       '作成担当者';
     const creatorName = `${creatorAssign.creatorDepartment} ${nonGLCreatorName}`;
     const requester = DUMMY_REQUESTERS[idx % DUMMY_REQUESTERS.length];
+    const productNames = entry.products.map((p) => p.name).join('、') || '（証明書）';
 
     requests.push({
       id: entry.id,
@@ -247,12 +262,12 @@ export function getDummyRequests(): RequestData[] {
       requesterName: requester.name,
       requesterEmail: requester.email,
       desiredDate: '2026-01-15',
-      productName: entry.productName,
-
-      productCode: `CODE-IP-${entry.id.slice(-1)}`,
+      products: entry.products,
       documentType: entry.documentType,
       submissionDestination: entry.submissionDestination,
-      requestDetails: '新商品のため、規格書を作成お願いします',
+      requestDetails: entry.products.length > 0
+        ? '新商品のため、規格書を作成お願いします'
+        : '証明書の発行をお願いします',
       windowDepartment: windowAssign.windowDepartment,
       status: RequestStatus.IN_PROGRESS,
       businessTypes: entry.businessTypes,
@@ -282,7 +297,7 @@ export function getDummyRequests(): RequestData[] {
       comments: createInProgressComments(
         entry.id,
         entry.documentType,
-        entry.productName,
+        productNames,
         entry.submissionDestination,
         entry.submissionDeadline,
         windowContactName,
@@ -300,7 +315,7 @@ export function getDummyRequests(): RequestData[] {
   const completedEntries = [
     {
       id: 'REQ-WC-006-CP',
-      productName: 'こいむぎ',
+      products: [{ name: 'こいむぎ', code: 'KM-720' }],
       categories: ['和酒'],
       businessTypes: ['業務用'],
       submissionDestination: '■■外食',
@@ -309,7 +324,7 @@ export function getDummyRequests(): RequestData[] {
     },
     {
       id: 'REQ-WC-009-CP',
-      productName: 'サンタ・リタ　スリー・メダルズ　メルロー',
+      products: [{ name: 'サンタ・リタ　スリー・メダルズ　メルロー', code: 'SR-ML-750' }],
       categories: ['輸入ワイン・洋酒'],
       businessTypes: ['家庭用'],
       submissionDestination: '◆◆商社',
@@ -333,11 +348,12 @@ export function getDummyRequests(): RequestData[] {
       '作成担当者';
     const creatorName = `${creatorAssign.creatorDepartment} ${nonGLCreatorName}`;
     const requester = DUMMY_REQUESTERS[(idx + 3) % DUMMY_REQUESTERS.length];
+    const productNames = entry.products.map((p) => p.name).join('、');
 
     const inProgressComments = createInProgressComments(
       entry.id,
       entry.documentType,
-      entry.productName,
+      productNames,
       entry.submissionDestination,
       entry.submissionDeadline,
       windowContactName,
@@ -352,9 +368,7 @@ export function getDummyRequests(): RequestData[] {
       requesterName: requester.name,
       requesterEmail: requester.email,
       desiredDate: '2026-01-15',
-      productName: entry.productName,
-
-      productCode: `CODE-CP-${entry.id.slice(-2)}`,
+      products: entry.products,
       documentType: entry.documentType,
       submissionDestination: entry.submissionDestination,
       requestDetails: '新商品のため、規格書を作成お願いします',

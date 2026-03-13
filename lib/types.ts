@@ -55,6 +55,12 @@ export interface StatusHistory {
   note?: string;
 }
 
+// Product entry interface
+export interface ProductEntry {
+  name: string;
+  code: string;
+}
+
 // Request data interface
 export interface RequestData {
   id: string;                           // requestsStore のキー
@@ -64,9 +70,8 @@ export interface RequestData {
   requesterName: string;
   requesterEmail: string;
   desiredDate?: string;
-  productName: string;
+  products: ProductEntry[];
   alcoholCategory?: string;
-  productCode?: string;
   documentType: string;
   submissionDestination: string;
   requestDetails: string;
@@ -96,11 +101,6 @@ export const requestFormSchema = z.object({
     .min(1, 'メールアドレスは必須です')
     .email('有効なメールアドレスを入力してください'),
   requestDate: z.string().optional(),
-  productName: z
-    .string()
-    .min(1, '商品名は必須です')
-    .max(100, '商品名は100文字以下にしてください'),
-  productCode: z.string().optional(),
   documentType: z.string().min(1, '文書種別は必須です'),
   submissionDestination: z.string().min(1, '提出先は必須です'),
   submissionDeadline: z.string().min(1, '作成完了希望日は必須です'),

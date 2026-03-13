@@ -9,8 +9,9 @@ export function Navigation() {
   const navItems = [
     { href: '/', label: '１．新規依頼' },
     { href: '/list', label: '２．依頼一覧' },
-    { href: '/window-contact-setting', label: '３．窓口担当者設定' },
-    { href: '/creator-setting', label: '４．作成担当者設定' },
+    { href: '/completed', label: '３．完成文書' },
+    { href: '/window-contact-setting', label: '４．窓口担当者設定' },
+    { href: '/creator-setting', label: '５．作成担当者設定' },
   ];
 
   return (

@@ -69,7 +69,8 @@ export default function ListPage() {
       const businessMatch = businessTypeFilter === 'all' || (req.businessTypes && req.businessTypes.includes(businessTypeFilter));
       const destMatch = !destinationFilter || req.submissionDestination.includes(destinationFilter);
       const requesterMatch = !requesterFilter || req.requesterName.includes(requesterFilter);
-      const searchMatch = req.productName.toLowerCase().includes(searchTerm.toLowerCase());
+      const productNameStr = req.products?.map((p) => p.name).join(' ') || '';
+      const searchMatch = productNameStr.toLowerCase().includes(searchTerm.toLowerCase());
 
       let deadlineMatch = true;
       if (deadlineFilter === 'approaching') {
@@ -105,8 +106,8 @@ export default function ListPage() {
           bValue = b.status;
           break;
         case 'productName':
-          aValue = a.productName;
-          bValue = b.productName;
+          aValue = a.products?.map((p) => p.name).join(', ') || '';
+          bValue = b.products?.map((p) => p.name).join(', ') || '';
           break;
         case 'category':
           aValue = a.categories?.[0] || '';
@@ -366,7 +367,9 @@ export default function ListPage() {
                         {formatDate(request.createdDate)}
                       </td>
                       <td className="px-2 py-1.5 text-xs text-foreground">
-                        {request.productName}
+                        {request.products?.length > 0
+                          ? request.products.map((p) => p.name).join(', ')
+                          : '－'}
                       </td>
                       <td className="px-2 py-1.5 text-xs text-foreground">
                         {request.categories?.join(', ')}

@@ -43,6 +43,11 @@ function getTodayString() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+interface ProductRow {
+  name: string;
+  code: string;
+}
+
 export function RequestForm() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,6 +56,7 @@ export function RequestForm() {
   const [businessTypes, setBusinessTypes] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [products, setProducts] = useState<ProductRow[]>([{ name: '', code: '' }]);
   const [autoAssignedResult, setAutoAssignedResult] = useState<{
     windowDepartment: string;
     windowContacts: string[];
@@ -69,11 +75,14 @@ export function RequestForm() {
       requesterName: DUMMY_USER.name,
       requesterEmail: DUMMY_USER.email,
       requestDate: getTodayString(),
-      productName: '黒ラベル',
     },
   });
 
   const deadline = watch('submissionDeadline');
+  const documentType = watch('documentType');
+
+  // 商品規格書／商品カルテ or eBASE の場合のみ商品入力を表示
+  const showProductFields = documentType === 'specification' || documentType === 'ebase';
 
   useEffect(() => {
     setMounted(true);
@@ -98,7 +107,7 @@ export function RequestForm() {
     setIsSubmitting(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 500));
-      console.log('Form submitted:', data, 'files:', attachedFiles);
+      console.log('Form submitted:', data, 'products:', products, 'files:', attachedFiles);
       toast({
         title: '成功',
         description: '依頼を提出しました',
@@ -108,12 +117,12 @@ export function RequestForm() {
         requesterName: DUMMY_USER.name,
         requesterEmail: DUMMY_USER.email,
         requestDate: getTodayString(),
-        productName: '黒ラベル',
       });
       setBusinessTypes([]);
       setCategories([]);
       setAutoAssignedResult(null);
       setAttachedFiles([]);
+      setProducts([{ name: '', code: '' }]);
     } catch (error) {
       toast({
         title: 'エラー',
@@ -132,12 +141,12 @@ export function RequestForm() {
       requesterName: DUMMY_USER.name,
       requesterEmail: DUMMY_USER.email,
       requestDate: getTodayString(),
-      productName: '黒ラベル',
     });
     setBusinessTypes([]);
     setCategories([]);
     setAutoAssignedResult(null);
     setAttachedFiles([]);
+    setProducts([{ name: '', code: '' }]);
     setDialogType(null);
   };
 
@@ -161,6 +170,19 @@ export function RequestForm() {
 
   const removeFile = (index: number) => {
     setAttachedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const updateProduct = (index: number, field: 'name' | 'code', value: string) => {
+    setProducts((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
+  };
+
+  const addProductRow = () => {
+    setProducts((prev) => [...prev, { name: '', code: '' }]);
+  };
+
+  const removeProductRow = (index: number) => {
+    if (products.length <= 1) return;
+    setProducts((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -213,34 +235,9 @@ export function RequestForm() {
               </div>
             </div>
 
-            {/* Product Info Section */}
+            {/* Product Info Section (checkboxes only) */}
             <div className="bg-card rounded-lg border border-border p-4 space-y-3">
               <h2 className="text-lg font-semibold text-foreground">商品情報</h2>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-foreground mb-1">商品名 *</label>
-                  <input
-                    type="text"
-                    {...register('productName')}
-                    className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="黒ラベル"
-                  />
-                  {errors.productName && (
-                    <p className="text-xs text-destructive mt-0.5">{errors.productName.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-foreground mb-1">商品コード</label>
-                  <input
-                    type="text"
-                    {...register('productCode')}
-                    className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="KC123456"
-                  />
-                </div>
-              </div>
 
               {/* Business Types & Categories side by side */}
               <div className="grid grid-cols-2 gap-3">
@@ -313,7 +310,6 @@ export function RequestForm() {
                           <SelectItem value="ebase">eBASE</SelectItem>
                           <SelectItem value="certificate">各種証明書</SelectItem>
                           <SelectItem value="other">その他</SelectItem>
-                          <SelectItem value="unknown">不明</SelectItem>
                         </SelectContent>
                       </Select>
                     )}
@@ -338,6 +334,54 @@ export function RequestForm() {
                   )}
                 </div>
               </div>
+
+              {/* Conditional Product Fields */}
+              {showProductFields && (
+                <div className="border border-border rounded p-3 space-y-2 bg-muted/20">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-medium text-foreground">商品情報 *</label>
+                    <button
+                      type="button"
+                      onClick={addProductRow}
+                      className="text-xs text-primary hover:underline font-medium flex items-center gap-1"
+                    >
+                      ＋ 商品を追加
+                    </button>
+                  </div>
+                  {products.map((product, index) => (
+                    <div key={index} className="flex gap-2 items-start">
+                      <div className="flex-1">
+                        <input
+                          type="text"
+                          value={product.name}
+                          onChange={(e) => updateProduct(index, 'name', e.target.value)}
+                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          placeholder="商品名"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <input
+                          type="text"
+                          value={product.code}
+                          onChange={(e) => updateProduct(index, 'code', e.target.value)}
+                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          placeholder="商品コード"
+                        />
+                      </div>
+                      {products.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeProductRow(index)}
+                          className="text-destructive hover:text-destructive/80 text-sm px-1 pt-1.5"
+                          title="削除"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-medium text-foreground mb-1">
@@ -410,26 +454,26 @@ export function RequestForm() {
 
             {/* Right column: Auto-Assigned Result + Buttons */}
             <div className="flex flex-col gap-4">
-              {/* Auto-Assigned Result Section */}
-              {autoAssignedResult && (
-                <div className="bg-card rounded-lg border border-border p-4">
-                  <h2 className="text-lg font-semibold text-foreground mb-3">
-                    送信先自動判定結果
-                  </h2>
-                  <div className="space-y-2">
-                    <div className="flex">
-                      <div className="w-28 text-xs font-medium text-muted-foreground">窓口部署：</div>
-                      <div className="text-sm text-foreground">{autoAssignedResult.windowDepartment}</div>
+              {/* Auto-Assigned Result Section - always visible */}
+              <div className="bg-card rounded-lg border border-border p-4">
+                <h2 className="text-lg font-semibold text-foreground mb-3">
+                  送信先自動判定結果
+                </h2>
+                <div className="space-y-2">
+                  <div className="flex">
+                    <div className="w-28 text-xs font-medium text-muted-foreground">窓口部署：</div>
+                    <div className="text-sm text-foreground">
+                      {autoAssignedResult ? autoAssignedResult.windowDepartment : '－'}
                     </div>
-                    <div className="flex">
-                      <div className="w-28 text-xs font-medium text-muted-foreground">窓口担当者：</div>
-                      <div className="text-sm text-foreground">
-                        {autoAssignedResult.windowContacts.join(', ')}
-                      </div>
+                  </div>
+                  <div className="flex">
+                    <div className="w-28 text-xs font-medium text-muted-foreground">窓口担当者：</div>
+                    <div className="text-sm text-foreground">
+                      {autoAssignedResult ? autoAssignedResult.windowContacts.join(', ') : '－'}
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
 
               {/* Buttons */}
               <div className="flex gap-4 mt-auto">

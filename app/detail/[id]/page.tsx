@@ -201,6 +201,11 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
     setShowSuccessDialog(true);
   };
 
+  // 商品名表示用ヘルパー
+  const productNamesDisplay = requestData.products?.length > 0
+    ? requestData.products.map((p) => p.name).join('、')
+    : '－';
+
   // コメント欄JSX（全ステータスで共通利用）
   const commentSection = (
     <div className="bg-card rounded-lg border border-border p-4">
@@ -294,9 +299,19 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                   <p className="text-foreground font-medium">{requestData.requesterEmail}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">商品名</p>
-                  <p className="text-foreground font-medium">{requestData.productName}</p>
+                  <p className="text-xs text-muted-foreground">文書種別</p>
+                  <p className="text-foreground font-medium">{requestData.documentType}</p>
                 </div>
+                {requestData.products?.length > 0 && (
+                  <div className="col-span-2">
+                    <p className="text-xs text-muted-foreground">商品</p>
+                    <div className="text-foreground font-medium">
+                      {requestData.products.map((p, i) => (
+                        <p key={i}>{p.name}{p.code ? `（${p.code}）` : ''}</p>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div>
                   <p className="text-xs text-muted-foreground">事業分類</p>
                   <p className="text-foreground font-medium">{requestData.businessTypes?.join(', ') || '-'}</p>
@@ -304,14 +319,6 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                 <div>
                   <p className="text-xs text-muted-foreground">カテゴリ分類</p>
                   <p className="text-foreground font-medium">{requestData.categories?.join(', ') || '-'}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">商品コード</p>
-                  <p className="text-foreground font-medium">{requestData.productCode || '-'}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">文書種別</p>
-                  <p className="text-foreground font-medium">{requestData.documentType}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">提出先</p>
@@ -328,7 +335,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                       ? `${windowAssignResult.windowDepartment}　${windowAssignResult.windowContacts.join('、')}`
                       : requestData.windowContacts?.length
                         ? `${requestData.windowDepartment}　${requestData.windowContacts.join('、')}`
-                        : '-'}
+                        : '－'}
                   </p>
                 </div>
                 <div className="col-span-2">
@@ -380,22 +387,22 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
               </div>
             )}
 
-            {/* 作成担当者自動判定結果（窓口待ち）/ 作成依頼先情報（作成中・完了） */}
-            {isAwaitingWindow && selectedDocuments.length > 0 && (
+            {/* 作成担当者自動判定結果 - always visible for 窓口待ち */}
+            {isAwaitingWindow && (
               <div className="bg-card rounded-lg border border-border p-4">
                 <h2 className="text-lg font-semibold text-foreground mb-3">作成担当者自動判定結果</h2>
                 <div className="space-y-2 bg-muted/50 rounded p-3 text-sm">
                   <div className="flex">
                     <div className="w-28 text-xs font-medium text-muted-foreground">作成文書:</div>
-                    <div className="text-foreground">{selectedDocuments.join(', ')}</div>
+                    <div className="text-foreground">{selectedDocuments.length > 0 ? selectedDocuments.join(', ') : '－'}</div>
                   </div>
                   <div className="flex">
                     <div className="w-28 text-xs font-medium text-muted-foreground">作成部署:</div>
-                    <div className="text-foreground">{creatorDepartment || '-'}</div>
+                    <div className="text-foreground">{creatorDepartment || '－'}</div>
                   </div>
                   <div className="flex">
                     <div className="w-28 text-xs font-medium text-muted-foreground">作成担当者:</div>
-                    <div className="text-foreground">{creators.join(', ') || '-'}</div>
+                    <div className="text-foreground">{creators.length > 0 ? creators.join(', ') : '－'}</div>
                   </div>
                 </div>
               </div>
@@ -412,21 +419,21 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                         const name =
                           requestData.windowContacts?.find((n) => !n.includes('GL')) ??
                           requestData.windowContacts?.[0];
-                        return name ? `${requestData.windowDepartment} ${name}` : '-';
+                        return name ? `${requestData.windowDepartment} ${name}` : '－';
                       })()}
                     </div>
                   </div>
                   <div className="flex">
                     <div className="w-28 text-xs font-medium text-muted-foreground">作成文書:</div>
-                    <div className="text-foreground">{requestData.documentsToCreate?.join(', ') || '-'}</div>
+                    <div className="text-foreground">{requestData.documentsToCreate?.join(', ') || '－'}</div>
                   </div>
                   <div className="flex">
                     <div className="w-28 text-xs font-medium text-muted-foreground">作成部署:</div>
-                    <div className="text-foreground">{requestData.creatorDepartment || '-'}</div>
+                    <div className="text-foreground">{requestData.creatorDepartment || '－'}</div>
                   </div>
                   <div className="flex">
                     <div className="w-28 text-xs font-medium text-muted-foreground">作成担当者:</div>
-                    <div className="text-foreground">{requestData.creators?.join(', ') || '-'}</div>
+                    <div className="text-foreground">{requestData.creators?.join(', ') || '－'}</div>
                   </div>
                 </div>
               </div>
@@ -501,7 +508,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                         type="text"
                         value={newDocumentName}
                         onChange={(e) => setNewDocumentName(e.target.value)}
-                        placeholder="specification_20250116.pdf"
+                        placeholder="specification_20260116.pdf"
                         className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                     </div>
