@@ -32,6 +32,24 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
   const [creators, setCreators] = useState<string[]>([]);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
+  // eBASE用フィールド
+  const [ebaseProductName, setEbaseProductName] = useState('');
+  const [ebaseSpecLink, setEbaseSpecLink] = useState('');
+  const [ebaseDrawing, setEbaseDrawing] = useState('');
+  const [ebaseFiles, setEbaseFiles] = useState<File[]>([]);
+  const [ebaseDesignNote, setEbaseDesignNote] = useState('');
+  const [ebaseTempImage, setEbaseTempImage] = useState('');
+  const [ebasePackaging, setEbasePackaging] = useState('');
+
+  // 各種証明書用フィールド
+  const [certDestName, setCertDestName] = useState('');
+  const [certType, setCertType] = useState('');
+  const [certItemName, setCertItemName] = useState('');
+  const [certCopies, setCertCopies] = useState('');
+  const [certSealRequired, setCertSealRequired] = useState('');
+  const [certOriginalNeeded, setCertOriginalNeeded] = useState('');
+  const [certShipTo, setCertShipTo] = useState('');
+
   if (!requestData) {
     return (
       <main className="bg-background py-4">
@@ -348,7 +366,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
             {/* Document Selection（窓口待ちのみ表示） */}
             {isAwaitingWindow && (
               <div className="bg-card rounded-lg border border-border p-4">
-                <h2 className="text-lg font-semibold text-foreground mb-3">作成文書選択</h2>
+                <h2 className="text-lg font-semibold text-foreground mb-3">作成文書</h2>
                 <div className="space-y-2 p-3 bg-muted/30 rounded">
                   <div>
                     <label className="block text-xs font-medium text-foreground mb-2">
@@ -368,15 +386,139 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                       ))}
                     </div>
                   </div>
+                  {/* eBASE選択時の入力欄 */}
+                  {selectedDocuments.includes('eBASE') && (
+                    <div className="mt-3 space-y-2 border border-border rounded p-3 bg-background">
+                      <p className="text-xs font-semibold text-foreground">eBASE 詳細情報</p>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">商品名</label>
+                        <p className="text-xs text-muted-foreground mb-1">対象商品を具体的に、正式名称で記入してください。複数SKUが存在する商品のうち350P・500Pだけ依頼する場合などは、その旨記入してください。</p>
+                        <textarea value={ebaseProductName} onChange={(e) => setEbaseProductName(e.target.value)} rows={2}
+                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          placeholder="例：黒ラベル 350ml缶、500ml缶" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">書状・商品規格書へのリンク</label>
+                        <input type="text" value={ebaseSpecLink} onChange={(e) => setEbaseSpecLink(e.target.value)}
+                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          placeholder="URLを入力" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">展開図、立体図形</label>
+                        <p className="text-xs text-muted-foreground mb-1">GAZO-WEBや本社掲示板に格納している場合はその旨記載。それ以外はファイル添付してください。</p>
+                        <textarea value={ebaseDrawing} onChange={(e) => setEbaseDrawing(e.target.value)} rows={2}
+                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          placeholder="格納場所やファイル名を記入" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">ファイル添付</label>
+                        <input type="file" multiple
+                          onChange={(e) => { if (e.target.files) setEbaseFiles((prev) => [...prev, ...Array.from(e.target.files!)]); }}
+                          className="w-full text-sm text-foreground file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer" />
+                        {ebaseFiles.length > 0 && (
+                          <div className="mt-1 space-y-0.5">
+                            {ebaseFiles.map((file, i) => (
+                              <div key={i} className="flex items-center justify-between bg-muted/30 rounded px-2 py-0.5">
+                                <span className="text-xs text-foreground truncate">{file.name}</span>
+                                <button type="button" onClick={() => setEbaseFiles((prev) => prev.filter((_, idx) => idx !== i))}
+                                  className="text-xs text-destructive hover:underline ml-2">削除</button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">通常デザインと異なる場合は記入</label>
+                        <p className="text-xs text-muted-foreground mb-1">「新」「NEW」が外れる、「キャンペーンスリーブ・カートン使用」など</p>
+                        <input type="text" value={ebaseDesignNote} onChange={(e) => setEbaseDesignNote(e.target.value)}
+                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          placeholder="変更点を記入" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">仮画像の場合、どの画像が仮画像か、また、画像確定予定日を記入</label>
+                        <input type="text" value={ebaseTempImage} onChange={(e) => setEbaseTempImage(e.target.value)}
+                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          placeholder="例：正面画像が仮、確定予定 2026/02/15" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">通常の包材以外の場合、包材の単体重量を記入</label>
+                        <p className="text-xs text-muted-foreground mb-1">ミカン箱型カートン、ギフトカートン、企画品の特殊カートン等</p>
+                        <input type="text" value={ebasePackaging} onChange={(e) => setEbasePackaging(e.target.value)}
+                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          placeholder="包材名と重量を記入" />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 各種証明書選択時の入力欄 */}
+                  {selectedDocuments.includes('各種証明書') && (
+                    <div className="mt-3 space-y-2 border border-border rounded p-3 bg-background">
+                      <p className="text-xs font-semibold text-foreground">各種証明書 詳細情報</p>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">提出先の正式名称</label>
+                        <input type="text" value={certDestName} onChange={(e) => setCertDestName(e.target.value)}
+                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          placeholder="正式名称を入力" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">証明書の種類</label>
+                        <p className="text-xs text-muted-foreground mb-1">どのような内容の証明書が必要か</p>
+                        <textarea value={certType} onChange={(e) => setCertType(e.target.value)} rows={2}
+                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          placeholder="例：原産地証明書、アレルゲン不使用証明書" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">対象アイテム名</label>
+                        <input type="text" value={certItemName} onChange={(e) => setCertItemName(e.target.value)}
+                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          placeholder="対象アイテム名を入力" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs font-medium text-foreground mb-1">必要部数</label>
+                          <input type="text" value={certCopies} onChange={(e) => setCertCopies(e.target.value)}
+                            className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                            placeholder="例：2部" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-foreground mb-1">捺印の要否</label>
+                          <select value={certSealRequired} onChange={(e) => setCertSealRequired(e.target.value)}
+                            className="w-full px-2 py-1.5 border border-input rounded-md bg-white text-sm text-foreground">
+                            <option value="">選択してください</option>
+                            <option value="要">要</option>
+                            <option value="否">否</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">証明書原本を常便で送る必要性</label>
+                        <select value={certOriginalNeeded} onChange={(e) => setCertOriginalNeeded(e.target.value)}
+                          className="w-full px-2 py-1.5 border border-input rounded-md bg-white text-sm text-foreground">
+                          <option value="">選択してください</option>
+                          <option value="あり">あり</option>
+                          <option value="なし">なし</option>
+                        </select>
+                      </div>
+                      {certOriginalNeeded === 'あり' && (
+                        <div>
+                          <label className="block text-xs font-medium text-foreground mb-1">常便送り先の拠点・部署・名前</label>
+                          <input type="text" value={certShipTo} onChange={(e) => setCertShipTo(e.target.value)}
+                            className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                            placeholder="例：東京本社 営業企画部 山田太郎" />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* 作成依頼詳細 */}
                   <div className="mt-2">
                     <label className="block text-xs font-medium text-foreground mb-1">
-                      作成依頼詳細（証明書の種類、アイテムなど）
+                      作成依頼詳細（その他補足事項）
                     </label>
                     <textarea
                       value={otherDocumentComment}
                       onChange={(e) => setOtherDocumentComment(e.target.value)}
-                      placeholder="証明書の種類やアイテム等、詳細を入力してください"
+                      placeholder="その他の補足事項があれば入力してください"
                       rows={2}
                       className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     />
