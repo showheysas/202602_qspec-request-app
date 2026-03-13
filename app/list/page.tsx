@@ -42,6 +42,7 @@ const getStatusLabel = (status: string) => {
 export default function ListPage() {
   const allRequests = getDummyRequests();
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [documentTypeFilter, setDocumentTypeFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [businessTypeFilter, setBusinessTypeFilter] = useState<string>('all');
   const [destinationFilter, setDestinationFilter] = useState<string>('');
@@ -65,6 +66,7 @@ export default function ListPage() {
 
     let filtered = allRequests.filter((req) => {
       const statusMatch = statusFilter === 'all' || req.status === statusFilter;
+      const docTypeMatch = documentTypeFilter === 'all' || req.documentType === documentTypeFilter;
       const categoryMatch = categoryFilter === 'all' || (req.categories && req.categories.includes(categoryFilter));
       const businessMatch = businessTypeFilter === 'all' || (req.businessTypes && req.businessTypes.includes(businessTypeFilter));
       const destMatch = !destinationFilter || req.submissionDestination.includes(destinationFilter);
@@ -84,7 +86,7 @@ export default function ListPage() {
         deadlineMatch = dl.getTime() < today.getTime();
       }
 
-      return statusMatch && categoryMatch && businessMatch && destMatch && requesterMatch && searchMatch && deadlineMatch;
+      return statusMatch && docTypeMatch && categoryMatch && businessMatch && destMatch && requesterMatch && searchMatch && deadlineMatch;
     });
 
     // Sort
@@ -149,7 +151,7 @@ export default function ListPage() {
     });
 
     return filtered;
-  }, [statusFilter, categoryFilter, businessTypeFilter, destinationFilter, requesterFilter, deadlineFilter, searchTerm, sortField, sortOrder, allRequests]);
+  }, [statusFilter, documentTypeFilter, categoryFilter, businessTypeFilter, destinationFilter, requesterFilter, deadlineFilter, searchTerm, sortField, sortOrder, allRequests]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -185,6 +187,7 @@ export default function ListPage() {
 
   const handleReset = () => {
     setStatusFilter('all');
+    setDocumentTypeFilter('all');
     setCategoryFilter('all');
     setBusinessTypeFilter('all');
     setDestinationFilter('');
@@ -216,7 +219,7 @@ export default function ListPage() {
 
         {/* Filters */}
         <Card className="p-3 mb-2">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-2">
             <div>
               <label className="block text-xs font-medium text-foreground mb-1">商品名検索</label>
               <Input
@@ -237,6 +240,20 @@ export default function ListPage() {
                 <option value={RequestStatus.AWAITING_WINDOW}>窓口待ち</option>
                 <option value={RequestStatus.IN_PROGRESS}>作成中</option>
                 <option value={RequestStatus.COMPLETED}>完了</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-foreground mb-1">文書種別</label>
+              <select
+                value={documentTypeFilter}
+                onChange={(e) => setDocumentTypeFilter(e.target.value)}
+                className="w-full px-2 py-1.5 border border-input rounded-md bg-white text-sm text-foreground"
+              >
+                <option value="all">全て</option>
+                <option value="商品規格書／商品カルテ">商品規格書／商品カルテ</option>
+                <option value="eBASE">eBASE</option>
+                <option value="各種証明書">各種証明書</option>
+                <option value="その他">その他</option>
               </select>
             </div>
             <div>

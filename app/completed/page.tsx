@@ -30,6 +30,7 @@ export default function CompletedPage() {
   }, []);
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [documentTypeFilter, setDocumentTypeFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [businessTypeFilter, setBusinessTypeFilter] = useState('all');
   const [destinationFilter, setDestinationFilter] = useState('');
@@ -46,11 +47,12 @@ export default function CompletedPage() {
     let filtered = allCompleted.filter((req) => {
       const productNameStr = req.products?.map((p) => p.name).join(' ') || '';
       const searchMatch = productNameStr.toLowerCase().includes(searchTerm.toLowerCase());
+      const docTypeMatch = documentTypeFilter === 'all' || req.documentType === documentTypeFilter;
       const categoryMatch = categoryFilter === 'all' || (req.categories && req.categories.includes(categoryFilter));
       const businessMatch = businessTypeFilter === 'all' || (req.businessTypes && req.businessTypes.includes(businessTypeFilter));
       const destMatch = !destinationFilter || req.submissionDestination.includes(destinationFilter);
       const requesterMatch = !requesterFilter || req.requesterName.includes(requesterFilter);
-      return searchMatch && categoryMatch && businessMatch && destMatch && requesterMatch;
+      return searchMatch && docTypeMatch && categoryMatch && businessMatch && destMatch && requesterMatch;
     });
 
     filtered.sort((a, b) => {
@@ -92,7 +94,7 @@ export default function CompletedPage() {
     });
 
     return filtered;
-  }, [allCompleted, searchTerm, categoryFilter, businessTypeFilter, destinationFilter, requesterFilter, sortField, sortOrder]);
+  }, [allCompleted, searchTerm, documentTypeFilter, categoryFilter, businessTypeFilter, destinationFilter, requesterFilter, sortField, sortOrder]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -118,6 +120,7 @@ export default function CompletedPage() {
 
   const handleReset = () => {
     setSearchTerm('');
+    setDocumentTypeFilter('all');
     setCategoryFilter('all');
     setBusinessTypeFilter('all');
     setDestinationFilter('');
@@ -134,7 +137,7 @@ export default function CompletedPage() {
 
         {/* Filters */}
         <Card className="p-3 mb-2">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
             <div>
               <label className="block text-xs font-medium text-foreground mb-1">商品名検索</label>
               <Input
@@ -143,6 +146,20 @@ export default function CompletedPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full h-8 text-sm"
               />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-foreground mb-1">文書種別</label>
+              <select
+                value={documentTypeFilter}
+                onChange={(e) => setDocumentTypeFilter(e.target.value)}
+                className="w-full px-2 py-1.5 border border-input rounded-md bg-white text-sm text-foreground"
+              >
+                <option value="all">全て</option>
+                <option value="商品規格書／商品カルテ">商品規格書／商品カルテ</option>
+                <option value="eBASE">eBASE</option>
+                <option value="各種証明書">各種証明書</option>
+                <option value="その他">その他</option>
+              </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-foreground mb-1">カテゴリ</label>

@@ -70,7 +70,7 @@ export function getWindowContactRequests(): RequestData[] {
       businessTypes: ['家庭用'],
       submissionDestination: '〇〇商社',
       submissionDeadline: '2026-01-22',
-      documentType: '商品規格書',
+      documentType: '商品規格書／商品カルテ',
     },
     {
       products: [{ name: 'ヱビスビール（2026年リニューアル）', code: 'EB-2026' }],
@@ -78,7 +78,7 @@ export function getWindowContactRequests(): RequestData[] {
       businessTypes: ['家庭用', '業務用'],
       submissionDestination: '△△流通',
       submissionDeadline: '2026-01-25',
-      documentType: '商品規格書',
+      documentType: '商品規格書／商品カルテ',
     },
     {
       products: [],
@@ -94,7 +94,7 @@ export function getWindowContactRequests(): RequestData[] {
       businessTypes: ['家庭用'],
       submissionDestination: '〇〇商社',
       submissionDeadline: '2026-01-20',
-      documentType: '商品規格書',
+      documentType: '商品規格書／商品カルテ',
     },
     {
       products: [{ name: '濃いめのレモンサワーの素', code: 'KLS-700' }],
@@ -102,7 +102,7 @@ export function getWindowContactRequests(): RequestData[] {
       businessTypes: ['家庭用'],
       submissionDestination: '◇◇商社',
       submissionDeadline: '2026-01-23',
-      documentType: '商品規格書',
+      documentType: '商品規格書／商品カルテ',
     },
     {
       products: [{ name: 'こいむぎ', code: 'KM-720' }],
@@ -110,7 +110,7 @@ export function getWindowContactRequests(): RequestData[] {
       businessTypes: ['業務用'],
       submissionDestination: '■■外食',
       submissionDeadline: '2026-01-26',
-      documentType: '商品規格書',
+      documentType: '商品規格書／商品カルテ',
     },
     {
       products: [],
@@ -126,7 +126,7 @@ export function getWindowContactRequests(): RequestData[] {
       businessTypes: ['業務用'],
       submissionDestination: '★★外食',
       submissionDeadline: '2026-01-27',
-      documentType: '商品規格書',
+      documentType: '商品規格書／商品カルテ',
     },
     {
       products: [{ name: 'サンタ・リタ　スリー・メダルズ　メルロー', code: 'SR-ML-750' }],
@@ -142,7 +142,7 @@ export function getWindowContactRequests(): RequestData[] {
       businessTypes: ['業務用'],
       submissionDestination: '●●外食',
       submissionDeadline: '2026-01-29',
-      documentType: '商品規格書',
+      documentType: '商品規格書／商品カルテ',
     },
   ];
 
