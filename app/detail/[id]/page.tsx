@@ -576,6 +576,90 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                     <div className="text-foreground">{requestData.creators?.join(', ') || '－'}</div>
                   </div>
                 </div>
+
+                {/* eBASE 詳細情報（読み取り専用） */}
+                {requestData.ebaseDetails && (
+                  <div className="mt-3 border border-border rounded p-3 bg-muted/30">
+                    <p className="text-xs font-semibold text-foreground mb-2">eBASE 詳細情報</p>
+                    <div className="space-y-1.5 text-sm">
+                      <div className="flex">
+                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">商品名:</div>
+                        <div className="text-foreground">{requestData.ebaseDetails.productName || '－'}</div>
+                      </div>
+                      <div className="flex">
+                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">書状・規格書リンク:</div>
+                        <div className="text-foreground break-all">{requestData.ebaseDetails.specLink || '－'}</div>
+                      </div>
+                      <div className="flex">
+                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">展開図・立体図形:</div>
+                        <div className="text-foreground">{requestData.ebaseDetails.drawing || '－'}</div>
+                      </div>
+                      {requestData.ebaseDetails.fileNames?.length > 0 && (
+                        <div className="flex">
+                          <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">添付ファイル:</div>
+                          <div className="text-foreground">{requestData.ebaseDetails.fileNames.join(', ')}</div>
+                        </div>
+                      )}
+                      {requestData.ebaseDetails.designNote && (
+                        <div className="flex">
+                          <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">デザイン変更メモ:</div>
+                          <div className="text-foreground">{requestData.ebaseDetails.designNote}</div>
+                        </div>
+                      )}
+                      {requestData.ebaseDetails.tempImage && (
+                        <div className="flex">
+                          <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">仮画像情報:</div>
+                          <div className="text-foreground">{requestData.ebaseDetails.tempImage}</div>
+                        </div>
+                      )}
+                      {requestData.ebaseDetails.packaging && (
+                        <div className="flex">
+                          <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">包材単体重量:</div>
+                          <div className="text-foreground">{requestData.ebaseDetails.packaging}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* 各種証明書 詳細情報（読み取り専用） */}
+                {requestData.certificateDetails && (
+                  <div className="mt-3 border border-border rounded p-3 bg-muted/30">
+                    <p className="text-xs font-semibold text-foreground mb-2">各種証明書 詳細情報</p>
+                    <div className="space-y-1.5 text-sm">
+                      <div className="flex">
+                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">提出先正式名称:</div>
+                        <div className="text-foreground">{requestData.certificateDetails.destName || '－'}</div>
+                      </div>
+                      <div className="flex">
+                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">証明書の種類:</div>
+                        <div className="text-foreground">{requestData.certificateDetails.certType || '－'}</div>
+                      </div>
+                      <div className="flex">
+                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">対象アイテム名:</div>
+                        <div className="text-foreground">{requestData.certificateDetails.itemName || '－'}</div>
+                      </div>
+                      <div className="flex">
+                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">必要部数:</div>
+                        <div className="text-foreground">{requestData.certificateDetails.copies || '－'}</div>
+                      </div>
+                      <div className="flex">
+                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">捺印の要否:</div>
+                        <div className="text-foreground">{requestData.certificateDetails.sealRequired || '－'}</div>
+                      </div>
+                      <div className="flex">
+                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">原本常便送付:</div>
+                        <div className="text-foreground">{requestData.certificateDetails.originalNeeded || '－'}</div>
+                      </div>
+                      {requestData.certificateDetails.shipTo && (
+                        <div className="flex">
+                          <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">送り先:</div>
+                          <div className="text-foreground">{requestData.certificateDetails.shipTo}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
