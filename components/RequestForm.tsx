@@ -5,7 +5,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { requestFormSchema, RequestFormData } from '@/lib/types';
 import { isDeadlineWarning } from '@/lib/businessLogic';
-import { assignWindowContact } from '@/utils/autoAssignLogic';
+import { assignWindowContact, assignCreator } from '@/utils/autoAssignLogic';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -61,6 +61,11 @@ export function RequestForm() {
     windowDepartment: string;
     windowContacts: string[];
   } | null>(null);
+  const [directToQA, setDirectToQA] = useState(false);
+  const [ebaseCreatorResult, setEbaseCreatorResult] = useState<{
+    creatorDepartment: string;
+    creators: string[];
+  } | null>(null);
 
   const {
     register,
@@ -101,6 +106,19 @@ export function RequestForm() {
     }
   }, [businessTypes, categories]);
 
+  // eBASE作成担当者の自動判定（品質保証部直接依頼用）
+  useEffect(() => {
+    if (categories.length > 0) {
+      const result = assignCreator(categories, ['eBASE']);
+      setEbaseCreatorResult({
+        creatorDepartment: result.creatorDepartment,
+        creators: result.creators,
+      });
+    } else {
+      setEbaseCreatorResult(null);
+    }
+  }, [categories]);
+
   const showWarning = mounted && deadline && isDeadlineWarning(new Date(deadline));
 
   const onSubmit = async (data: RequestFormData) => {
@@ -121,6 +139,7 @@ export function RequestForm() {
       setBusinessTypes([]);
       setCategories([]);
       setAutoAssignedResult(null);
+      setDirectToQA(false);
       setAttachedFiles([]);
       setProducts([{ name: '', code: '' }]);
     } catch (error) {
@@ -145,6 +164,7 @@ export function RequestForm() {
     setBusinessTypes([]);
     setCategories([]);
     setAutoAssignedResult(null);
+    setDirectToQA(false);
     setAttachedFiles([]);
     setProducts([{ name: '', code: '' }]);
     setDialogType(null);
@@ -284,6 +304,22 @@ export function RequestForm() {
                     <p className="text-xs text-destructive mt-0.5">最低1つ選択してください</p>
                   )}
                 </div>
+              </div>
+
+              {/* 品質保証部直接依頼チェックボックス */}
+              <div className="border-t border-border pt-2">
+                <label className="flex items-start gap-1.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={directToQA}
+                    onChange={(e) => setDirectToQA(e.target.checked)}
+                    className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary mt-0.5"
+                  />
+                  <span className="text-xs text-foreground leading-relaxed">
+                    品質保証部に直接依頼（CC：窓口担当者）
+                    <span className="text-muted-foreground">※事業部が起案する場合に限る</span>
+                  </span>
+                </label>
               </div>
             </div>
           </div>
@@ -461,20 +497,41 @@ export function RequestForm() {
                 <h2 className="text-lg font-semibold text-foreground mb-3">
                   送信先自動判定結果
                 </h2>
-                <div className="space-y-2">
-                  <div className="flex">
-                    <div className="w-28 text-xs font-medium text-muted-foreground">窓口部署：</div>
-                    <div className="text-sm text-foreground">
-                      {autoAssignedResult ? autoAssignedResult.windowDepartment : '－'}
+                {directToQA ? (
+                  <div className="space-y-2">
+                    <div className="flex">
+                      <div className="w-28 text-xs font-medium text-muted-foreground">送信先：</div>
+                      <div className="text-sm text-foreground">
+                        {ebaseCreatorResult
+                          ? `${ebaseCreatorResult.creatorDepartment}　${ebaseCreatorResult.creators.join('、')}`
+                          : '－'}
+                      </div>
+                    </div>
+                    <div className="flex">
+                      <div className="w-28 text-xs font-medium text-muted-foreground">CC：</div>
+                      <div className="text-sm text-foreground">
+                        {autoAssignedResult
+                          ? `${autoAssignedResult.windowDepartment}　${autoAssignedResult.windowContacts.join('、')}`
+                          : '－'}
+                      </div>
                     </div>
                   </div>
-                  <div className="flex">
-                    <div className="w-28 text-xs font-medium text-muted-foreground">窓口担当者：</div>
-                    <div className="text-sm text-foreground">
-                      {autoAssignedResult ? autoAssignedResult.windowContacts.join(', ') : '－'}
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex">
+                      <div className="w-28 text-xs font-medium text-muted-foreground">窓口部署：</div>
+                      <div className="text-sm text-foreground">
+                        {autoAssignedResult ? autoAssignedResult.windowDepartment : '－'}
+                      </div>
+                    </div>
+                    <div className="flex">
+                      <div className="w-28 text-xs font-medium text-muted-foreground">窓口担当者：</div>
+                      <div className="text-sm text-foreground">
+                        {autoAssignedResult ? autoAssignedResult.windowContacts.join(', ') : '－'}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Buttons */}
