@@ -42,6 +42,7 @@ export default function CompletedPage() {
                   <th className="px-3 py-2 text-left text-xs font-semibold text-foreground whitespace-nowrap">商品名</th>
                   <th className="px-3 py-2 text-left text-xs font-semibold text-foreground whitespace-nowrap">文書種別</th>
                   <th className="px-3 py-2 text-left text-xs font-semibold text-foreground whitespace-nowrap">カテゴリ</th>
+                  <th className="px-3 py-2 text-left text-xs font-semibold text-foreground whitespace-nowrap">事業</th>
                   <th className="px-3 py-2 text-left text-xs font-semibold text-foreground whitespace-nowrap">提出先</th>
                   <th className="px-3 py-2 text-left text-xs font-semibold text-foreground whitespace-nowrap">依頼者</th>
                   <th className="px-3 py-2 text-left text-xs font-semibold text-foreground whitespace-nowrap">完了日</th>
@@ -72,6 +73,7 @@ export default function CompletedPage() {
                         </td>
                         <td className="px-3 py-2 text-xs text-foreground">{request.documentType}</td>
                         <td className="px-3 py-2 text-xs text-foreground">{request.categories?.join(', ')}</td>
+                        <td className="px-3 py-2 text-xs text-foreground">{request.businessTypes?.join(', ')}</td>
                         <td className="px-3 py-2 text-xs text-foreground">{request.submissionDestination}</td>
                         <td className="px-3 py-2 text-xs text-foreground">{request.requesterName}</td>
                         <td className="px-3 py-2 text-xs text-foreground whitespace-nowrap">
@@ -91,7 +93,7 @@ export default function CompletedPage() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={9} className="px-3 py-6 text-center text-muted-foreground">
+                    <td colSpan={10} className="px-3 py-6 text-center text-muted-foreground">
                       完了済みの依頼はありません
                     </td>
                   </tr>

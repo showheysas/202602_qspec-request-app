@@ -21,7 +21,7 @@ const CATEGORIES = [
 
 const BUSINESS_TYPES = ['家庭用', '業務用', 'その他'];
 
-type SortField = 'id' | 'createdDate' | 'status' | 'productName' | 'category' | 'businessType' | 'submissionDestination' | 'requesterName' | 'submissionDeadline';
+type SortField = 'id' | 'createdDate' | 'status' | 'productName' | 'documentType' | 'category' | 'businessType' | 'submissionDestination' | 'requesterName' | 'submissionDeadline';
 type SortOrder = 'asc' | 'desc';
 
 const statusColors = {
@@ -108,6 +108,10 @@ export default function ListPage() {
         case 'productName':
           aValue = a.products?.map((p) => p.name).join(', ') || '';
           bValue = b.products?.map((p) => p.name).join(', ') || '';
+          break;
+        case 'documentType':
+          aValue = a.documentType || '';
+          bValue = b.documentType || '';
           break;
         case 'category':
           aValue = a.categories?.[0] || '';
@@ -323,6 +327,10 @@ export default function ListPage() {
                     商品名{sortIndicator('productName')}
                   </th>
                   <th className="px-2 py-1.5 text-left text-xs font-semibold text-foreground cursor-pointer hover:bg-accent whitespace-nowrap"
+                    onClick={() => handleSort('documentType')}>
+                    文書種別{sortIndicator('documentType')}
+                  </th>
+                  <th className="px-2 py-1.5 text-left text-xs font-semibold text-foreground cursor-pointer hover:bg-accent whitespace-nowrap"
                     onClick={() => handleSort('category')}>
                     カテゴリ{sortIndicator('category')}
                   </th>
@@ -372,6 +380,9 @@ export default function ListPage() {
                           : '－'}
                       </td>
                       <td className="px-2 py-1.5 text-xs text-foreground">
+                        {request.documentType}
+                      </td>
+                      <td className="px-2 py-1.5 text-xs text-foreground">
                         {request.categories?.join(', ')}
                       </td>
                       <td className="px-2 py-1.5 text-xs text-foreground">
@@ -405,7 +416,7 @@ export default function ListPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={10} className="px-3 py-6 text-center text-muted-foreground">
+                    <td colSpan={11} className="px-3 py-6 text-center text-muted-foreground">
                       該当する依頼がありません
                     </td>
                   </tr>
