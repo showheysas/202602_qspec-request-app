@@ -195,7 +195,9 @@ export function RequestForm() {
           <div className="grid grid-cols-2 gap-4">
             {/* Basic Info Section */}
             <div className="bg-card rounded-lg border border-border p-4 space-y-3">
-              <h2 className="text-lg font-semibold text-foreground">基本情報</h2>
+              <h2 className="text-lg font-semibold text-foreground">基本情報
+                <span className="text-xs font-normal text-muted-foreground ml-2">（※ログイン情報より自動入力されます）</span>
+              </h2>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-foreground mb-1">
@@ -325,7 +327,7 @@ export function RequestForm() {
                     type="text"
                     {...register('submissionDestination')}
                     className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="某百貨店"
+                    placeholder="○○生協"
                   />
                   {errors.submissionDestination && (
                     <p className="text-xs text-destructive mt-0.5">
