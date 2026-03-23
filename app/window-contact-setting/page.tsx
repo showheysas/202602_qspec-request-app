@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useAccessGuard } from '@/hooks/useAccessGuard';
 import { getWindowContacts } from '@/utils/contactDummyData';
 import { WindowContact } from '@/lib/types/contact';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,7 @@ const CATEGORY_OPTIONS = [
 ];
 
 export default function WindowContactSettingPage() {
+  useAccessGuard();
   const [contacts, setContacts] = useState<WindowContact[]>(() => getWindowContacts());
   const [editingContact, setEditingContact] = useState<WindowContact | null>(null);
   const [isAddMode, setIsAddMode] = useState(false);

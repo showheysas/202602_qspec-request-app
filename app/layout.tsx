@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Navigation } from '@/components/Navigation'
+import { AuthProvider } from '@/contexts/AuthContext'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -36,12 +37,14 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="ja">
       <body className="font-sans antialiased h-screen flex flex-col overflow-hidden">
-        <Navigation />
-        <div className="flex-1 overflow-y-auto">
-          {children}
-        </div>
+        <AuthProvider>
+          <Navigation />
+          <div className="flex-1 overflow-y-auto">
+            {children}
+          </div>
+        </AuthProvider>
         <Analytics />
       </body>
     </html>

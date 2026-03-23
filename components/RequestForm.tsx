@@ -3,9 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { requestFormSchema, RequestFormData } from '@/lib/types';
+import { requestFormSchema, RequestFormData, RequestData, RequestStatus } from '@/lib/types';
 import { isDeadlineWarning } from '@/lib/businessLogic';
 import { assignWindowContact, assignCreator } from '@/utils/autoAssignLogic';
+import { addRequest } from '@/utils/dummyData';
+import { useAuth } from '@/contexts/AuthContext';
+import { useAccessGuard } from '@/hooks/useAccessGuard';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -32,12 +35,6 @@ const CATEGORIES = [
   'その他',
 ];
 
-// ダミーのログインユーザー情報（モック）
-const DUMMY_USER = {
-  name: '田中太郎',
-  email: 'tanaka@example.com',
-};
-
 function getTodayString() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -45,18 +42,21 @@ function getTodayString() {
 
 interface ProductRow {
   name: string;
-  code: string;
+  varietyCode: string;
+  remarks: string;
 }
 
 export function RequestForm() {
   const { toast } = useToast();
+  useAccessGuard();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dialogType, setDialogType] = useState<'submit' | 'clear' | null>(null);
   const [mounted, setMounted] = useState(false);
   const [businessTypes, setBusinessTypes] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
-  const [products, setProducts] = useState<ProductRow[]>([{ name: '', code: '' }]);
+  const [products, setProducts] = useState<ProductRow[]>([{ name: '', varietyCode: '', remarks: '' }]);
   const [autoAssignedResult, setAutoAssignedResult] = useState<{
     windowDepartment: string;
     windowContacts: string[];
@@ -77,8 +77,8 @@ export function RequestForm() {
   } = useForm<RequestFormData>({
     resolver: zodResolver(requestFormSchema),
     defaultValues: {
-      requesterName: DUMMY_USER.name,
-      requesterEmail: DUMMY_USER.email,
+      requesterName: user?.name ?? '',
+      requesterEmail: user?.email ?? '',
       requestDate: getTodayString(),
     },
   });
@@ -125,15 +125,63 @@ export function RequestForm() {
     setIsSubmitting(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 500));
-      console.log('Form submitted:', data, 'products:', products, 'files:', attachedFiles);
+
+      // ProductRow → ProductEntry マッピング
+      const productEntries = products
+        .filter((p) => p.name.trim())
+        .map((p) => ({ name: p.name, code: p.varietyCode }));
+
+      // 窓口担当者自動判定
+      const windowResult = businessTypes.length > 0 && categories.length > 0
+        ? assignWindowContact(businessTypes, categories)
+        : { windowDepartment: '', windowContacts: [] as string[] };
+
+      // 新規依頼をストアに追加
+      const newId = `REQ-${Date.now()}`;
+      const newRequest: RequestData = {
+        id: newId,
+        requestId: newId,
+        requestDate: data.requestDate || getTodayString(),
+        requestDepartment: '営業企画部',
+        requesterName: data.requesterName,
+        requesterEmail: data.requesterEmail,
+        products: productEntries,
+        documentType: data.documentType === 'specification' ? '商品規格書／商品カルテ'
+          : data.documentType === 'ebase' ? 'eBASE'
+          : data.documentType === 'certificate' ? '各種証明書'
+          : 'その他',
+        submissionDestination: data.submissionDestination,
+        requestDetails: data.requestDetails,
+        windowDepartment: windowResult.windowDepartment,
+        windowContacts: windowResult.windowContacts,
+        businessTypes,
+        categories,
+        documentsToCreate: [],
+        creatorDepartment: '',
+        creators: [],
+        submissionDeadline: data.submissionDeadline,
+        status: RequestStatus.AWAITING_WINDOW,
+        createdDate: new Date(),
+        statusHistory: [{
+          id: `sh-${Date.now()}`,
+          status: RequestStatus.AWAITING_WINDOW,
+          changedBy: data.requesterName,
+          changedDate: new Date(),
+          note: '新規依頼を受け付けました',
+        }],
+        comments: [],
+        completedDocuments: [],
+      };
+      addRequest(newRequest);
+
       toast({
         title: '成功',
         description: '依頼を提出しました',
         duration: 3000,
       });
       reset({
-        requesterName: DUMMY_USER.name,
-        requesterEmail: DUMMY_USER.email,
+        requesterName: user?.name ?? '',
+        requesterEmail: user?.email ?? '',
         requestDate: getTodayString(),
       });
       setBusinessTypes([]);
@@ -141,7 +189,7 @@ export function RequestForm() {
       setAutoAssignedResult(null);
       setDirectToQA(false);
       setAttachedFiles([]);
-      setProducts([{ name: '', code: '' }]);
+      setProducts([{ name: '', varietyCode: '', remarks: '' }]);
     } catch (error) {
       toast({
         title: 'エラー',
@@ -157,8 +205,8 @@ export function RequestForm() {
 
   const handleClear = () => {
     reset({
-      requesterName: DUMMY_USER.name,
-      requesterEmail: DUMMY_USER.email,
+      requesterName: user?.name ?? '',
+      requesterEmail: user?.email ?? '',
       requestDate: getTodayString(),
     });
     setBusinessTypes([]);
@@ -166,7 +214,7 @@ export function RequestForm() {
     setAutoAssignedResult(null);
     setDirectToQA(false);
     setAttachedFiles([]);
-    setProducts([{ name: '', code: '' }]);
+    setProducts([{ name: '', varietyCode: '', remarks: '' }]);
     setDialogType(null);
   };
 
@@ -192,12 +240,12 @@ export function RequestForm() {
     setAttachedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const updateProduct = (index: number, field: 'name' | 'code', value: string) => {
+  const updateProduct = (index: number, field: 'name' | 'varietyCode' | 'remarks', value: string) => {
     setProducts((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
   };
 
   const addProductRow = () => {
-    setProducts((prev) => [...prev, { name: '', code: '' }]);
+    setProducts((prev) => [...prev, { name: '', varietyCode: '', remarks: '' }]);
   };
 
   const removeProductRow = (index: number) => {
@@ -317,7 +365,7 @@ export function RequestForm() {
                   />
                   <span className="text-xs text-foreground leading-relaxed">
                     品質保証部に直接依頼（CC：窓口担当者）
-                    <span className="text-muted-foreground">※事業部が起案する場合に限る</span>
+                    <span className="text-muted-foreground">※事業部が起案するeBase作成依頼に限る</span>
                   </span>
                 </label>
               </div>
@@ -400,10 +448,19 @@ export function RequestForm() {
                       <div className="flex-1">
                         <input
                           type="text"
-                          value={product.code}
-                          onChange={(e) => updateProduct(index, 'code', e.target.value)}
+                          value={product.varietyCode}
+                          onChange={(e) => updateProduct(index, 'varietyCode', e.target.value)}
                           className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                          placeholder="商品コード"
+                          placeholder="品種コード（親・子がある場合は両方）"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <input
+                          type="text"
+                          value={product.remarks}
+                          onChange={(e) => updateProduct(index, 'remarks', e.target.value)}
+                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          placeholder="備考"
                         />
                       </div>
                       {products.length > 1 && (

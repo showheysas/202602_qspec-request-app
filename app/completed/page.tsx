@@ -2,8 +2,9 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { getDummyRequests } from '@/utils/dummyData';
+import { getAllRequests } from '@/utils/dummyData';
 import { RequestStatus } from '@/lib/types';
+import { useAccessGuard } from '@/hooks/useAccessGuard';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,8 +26,9 @@ type SortField = 'id' | 'createdDate' | 'productName' | 'documentType' | 'catego
 type SortOrder = 'asc' | 'desc';
 
 export default function CompletedPage() {
+  useAccessGuard();
   const allCompleted = useMemo(() => {
-    return getDummyRequests().filter((req) => req.status === RequestStatus.COMPLETED);
+    return getAllRequests().filter((req) => req.status === RequestStatus.COMPLETED);
   }, []);
 
   const [searchTerm, setSearchTerm] = useState('');

@@ -2,8 +2,11 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { getDummyRequests } from '@/utils/dummyData';
+import { getAllRequests } from '@/utils/dummyData';
 import { RequestData, RequestStatus } from '@/lib/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { canSeeAllStatuses } from '@/lib/auth';
+import { useAccessGuard } from '@/hooks/useAccessGuard';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,7 +43,10 @@ const getStatusLabel = (status: string) => {
 };
 
 export default function ListPage() {
-  const allRequests = getDummyRequests();
+  useAccessGuard();
+  const { user } = useAuth();
+  const showAllStatuses = canSeeAllStatuses(user?.role ?? 'planner');
+  const allRequests = getAllRequests();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [documentTypeFilter, setDocumentTypeFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -65,6 +71,8 @@ export default function ListPage() {
     const today = APP_TODAY;
 
     let filtered = allRequests.filter((req) => {
+      // 非管理者は窓口待ちのみ表示
+      if (!showAllStatuses && req.status !== RequestStatus.AWAITING_WINDOW) return false;
       const statusMatch = statusFilter === 'all' || req.status === statusFilter;
       const docTypeMatch = documentTypeFilter === 'all' || req.documentType === documentTypeFilter;
       const categoryMatch = categoryFilter === 'all' || (req.categories && req.categories.includes(categoryFilter));
@@ -151,7 +159,7 @@ export default function ListPage() {
     });
 
     return filtered;
-  }, [statusFilter, documentTypeFilter, categoryFilter, businessTypeFilter, destinationFilter, requesterFilter, deadlineFilter, searchTerm, sortField, sortOrder, allRequests]);
+  }, [statusFilter, documentTypeFilter, categoryFilter, businessTypeFilter, destinationFilter, requesterFilter, deadlineFilter, searchTerm, sortField, sortOrder, allRequests, showAllStatuses]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -229,19 +237,21 @@ export default function ListPage() {
                 className="w-full h-8 text-sm"
               />
             </div>
-            <div>
-              <label className="block text-xs font-medium text-foreground mb-1">ステータス</label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-2 py-1.5 border border-input rounded-md bg-white text-sm text-foreground"
-              >
-                <option value="all">全て</option>
-                <option value={RequestStatus.AWAITING_WINDOW}>窓口待ち</option>
-                <option value={RequestStatus.IN_PROGRESS}>作成中</option>
-                <option value={RequestStatus.COMPLETED}>完了</option>
-              </select>
-            </div>
+            {showAllStatuses && (
+              <div>
+                <label className="block text-xs font-medium text-foreground mb-1">ステータス</label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full px-2 py-1.5 border border-input rounded-md bg-white text-sm text-foreground"
+                >
+                  <option value="all">全て</option>
+                  <option value={RequestStatus.AWAITING_WINDOW}>窓口待ち</option>
+                  <option value={RequestStatus.IN_PROGRESS}>作成中</option>
+                  <option value={RequestStatus.COMPLETED}>完了</option>
+                </select>
+              </div>
+            )}
             <div>
               <label className="block text-xs font-medium text-foreground mb-1">文書種別</label>
               <select

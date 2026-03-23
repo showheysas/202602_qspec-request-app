@@ -16,10 +16,15 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { canEditDetail } from '@/lib/auth';
+import { useAccessGuard } from '@/hooks/useAccessGuard';
 
 export default function DetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { toast } = useToast();
+  useAccessGuard();
+  const { user } = useAuth();
 
   const [requestData, setRequestData] = useState<RequestData | null>(() => getRequestById(id));
   const [dialogType, setDialogType] = useState<'status' | 'document' | 'comment' | 'createRequest' | null>(null);
@@ -67,8 +72,8 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
 
   const isAwaitingWindow = requestData.status === RequestStatus.AWAITING_WINDOW;
   const isInProgress = requestData.status === RequestStatus.IN_PROGRESS;
+  const userCanEditDetail = canEditDetail(user?.role ?? 'planner');
 
-  // アプリ内の現在日付（モック用固定値）
   const APP_TODAY = new Date('2026-01-22T00:00:00');
 
   const getDeadlineColor = () => {
@@ -80,30 +85,23 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
     return '';
   };
 
-  // 依頼発信先を自動判定で算出
   const windowAssignResult = requestData.businessTypes?.length > 0 && requestData.categories?.length > 0
     ? assignWindowContact(requestData.businessTypes, requestData.categories)
     : null;
 
   const getStatusBadgeColor = (status: RequestStatus) => {
     switch (status) {
-      case RequestStatus.AWAITING_WINDOW:
-        return 'bg-orange-500 text-white';
-      case RequestStatus.IN_PROGRESS:
-        return 'bg-yellow-500 text-white';
-      case RequestStatus.COMPLETED:
-        return 'bg-green-500 text-white';
+      case RequestStatus.AWAITING_WINDOW: return 'bg-orange-500 text-white';
+      case RequestStatus.IN_PROGRESS: return 'bg-yellow-500 text-white';
+      case RequestStatus.COMPLETED: return 'bg-green-500 text-white';
     }
   };
 
   const getStatusLabel = (status: RequestStatus) => {
     switch (status) {
-      case RequestStatus.AWAITING_WINDOW:
-        return '窓口待ち';
-      case RequestStatus.IN_PROGRESS:
-        return '作成中';
-      case RequestStatus.COMPLETED:
-        return '完了';
+      case RequestStatus.AWAITING_WINDOW: return '窓口待ち';
+      case RequestStatus.IN_PROGRESS: return '作成中';
+      case RequestStatus.COMPLETED: return '完了';
     }
   };
 
@@ -111,37 +109,21 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
     const updated = updateRequestStatus(id, newStatus);
     if (updated) {
       setRequestData(updated);
-      toast({
-        title: '成功',
-        description: 'ステータスを更新しました',
-        duration: 3000,
-      });
+      toast({ title: '成功', description: 'ステータスを更新しました', duration: 3000 });
     }
     setDialogType(null);
   };
 
   const handleDocumentRegistration = async () => {
     if (!newDocumentName.trim()) {
-      toast({
-        title: 'エラー',
-        description: 'ファイル名を入力してください',
-        variant: 'destructive',
-        duration: 3000,
-      });
+      toast({ title: 'エラー', description: 'ファイル名を入力してください', variant: 'destructive', duration: 3000 });
       return;
     }
-
     const doc = addCompletedDocument(id, DocumentType.EBASE, newDocumentName);
     if (doc) {
       const updated = getRequestById(id);
-      if (updated) {
-        setRequestData(updated);
-      }
-      toast({
-        title: '成功',
-        description: '文書を登録しました',
-        duration: 3000,
-      });
+      if (updated) setRequestData(updated);
+      toast({ title: '成功', description: '文書を登録しました', duration: 3000 });
       setNewDocumentName('');
     }
     setDialogType(null);
@@ -149,89 +131,58 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
 
   const handleCommentAdd = async () => {
     if (!newComment.trim() || newComment.length < 1 || newComment.length > 500) {
-      toast({
-        title: 'エラー',
-        description: 'コメントは1～500文字で入力してください',
-        variant: 'destructive',
-        duration: 3000,
-      });
+      toast({ title: 'エラー', description: 'コメントは1～500文字で入力してください', variant: 'destructive', duration: 3000 });
       return;
     }
-
-    const comment = addComment(id, 'ユーザー', newComment);
+    const comment = addComment(id, user?.name ?? 'ユーザー', newComment);
     if (comment) {
       const updated = getRequestById(id);
-      if (updated) {
-        setRequestData(updated);
-      }
-      toast({
-        title: '成功',
-        description: 'コメントを追加しました',
-        duration: 3000,
-      });
+      if (updated) setRequestData(updated);
+      toast({ title: '成功', description: 'コメントを追加しました', duration: 3000 });
       setNewComment('');
     }
     setDialogType(null);
   };
 
   const toggleDocument = (doc: string) => {
-    setSelectedDocuments((prev) =>
-      prev.includes(doc) ? prev.filter((d) => d !== doc) : [...prev, doc]
-    );
-
-    // ドキュメント選択時に自動判定
-    if (!selectedDocuments.includes(doc)) {
-      const newDocs = [...selectedDocuments, doc];
+    const newDocs = selectedDocuments.includes(doc)
+      ? selectedDocuments.filter((d) => d !== doc)
+      : [...selectedDocuments, doc];
+    setSelectedDocuments(newDocs);
+    if (newDocs.length > 0) {
       const result = assignCreator(requestData?.categories || [], newDocs);
       setCreatorDepartment(result.creatorDepartment);
       setCreators(result.creators);
+    } else {
+      setCreatorDepartment('');
+      setCreators([]);
     }
   };
 
   const handleCreateRequest = () => {
     if (selectedDocuments.length === 0) {
-      toast({
-        title: 'エラー',
-        description: '作成文書を最低1つ選択してください',
-        variant: 'destructive',
-        duration: 3000,
-      });
+      toast({ title: 'エラー', description: '作成文書を最低1つ選択してください', variant: 'destructive', duration: 3000 });
       return;
     }
-
     if (!requestData) return;
-
-    // assignCreator() で作成担当者を自動判定
     const creatorResult = assignCreator(requestData.categories, selectedDocuments);
-
-    // ステータスを更新
     updateRequestStatus(id, 'creator-processing' as RequestStatus);
-
-    // リクエストに作成情報を保存
     requestData.status = 'creator-processing';
     requestData.documentsToCreate = selectedDocuments;
     requestData.creators = creatorResult.creators;
     requestData.creatorDepartment = creatorResult.creatorDepartment;
     setRequestData({ ...requestData });
-
-    // ダイアログを閉じてから成功ダイアログを表示
     setDialogType(null);
     setShowSuccessDialog(true);
   };
 
-  // 商品名表示用ヘルパー
-  const productNamesDisplay = requestData.products?.length > 0
-    ? requestData.products.map((p) => p.name).join('、')
-    : '－';
-
-  // コメント欄JSX（全ステータスで共通利用）
+  // コメント欄（コメント数に応じて自然拡張）
   const commentSection = (
     <div className="bg-card rounded-lg border border-border p-4">
       <h2 className="text-lg font-semibold text-foreground mb-3">コメント欄</h2>
 
-      {/* Comments List */}
       {requestData.comments && requestData.comments.length > 0 && (
-        <div className="mb-4 space-y-2 max-h-48 overflow-y-auto">
+        <div className="mb-4 space-y-2">
           {requestData.comments.map((comment) => (
             <div key={comment.id} className="border border-border rounded p-2">
               <div className="flex justify-between mb-1">
@@ -246,12 +197,9 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
         </div>
       )}
 
-      {/* Add Comment Form */}
       <div className="p-3 bg-muted/30 rounded space-y-2">
         <div>
-          <label className="block text-xs font-medium text-foreground mb-1">
-            新規コメント
-          </label>
+          <label className="block text-xs font-medium text-foreground mb-1">新規コメント</label>
           <textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
@@ -260,17 +208,32 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
             rows={2}
             className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {newComment.length} / 500 文字
-          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">{newComment.length} / 500 文字</p>
         </div>
-
         <Button
           onClick={() => setDialogType('comment')}
           className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 w-full text-sm"
         >
           コメント追加
         </Button>
+      </div>
+    </div>
+  );
+
+  // ステータス履歴
+  const statusHistorySection = (
+    <div className="bg-card rounded-lg border border-border p-4">
+      <h2 className="text-lg font-semibold text-foreground mb-3">ステータス履歴</h2>
+      <div className="space-y-2">
+        {requestData.statusHistory?.map((history) => (
+          <div key={history.id} className="border-l-4 border-primary pl-3 py-1">
+            <p className="font-semibold text-sm text-foreground">{getStatusLabel(history.status as RequestStatus)}</p>
+            <p className="text-xs text-muted-foreground">
+              {new Date(history.changedDate).toLocaleString('ja-JP')}
+            </p>
+            {history.note && <p className="text-xs text-foreground mt-0.5">{history.note}</p>}
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -282,9 +245,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
             <Link href="/list">
-              <Button variant="ghost" className="p-1 text-sm">
-                ← 戻る
-              </Button>
+              <Button variant="ghost" className="p-1 text-sm">← 戻る</Button>
             </Link>
             <div>
               <h1 className="text-2xl font-bold text-foreground">依頼詳細</h1>
@@ -298,9 +259,9 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
 
         {/* 2-column layout */}
         <div className="grid grid-cols-2 gap-4">
-          {/* Left column: 依頼情報 + 作成依頼情報 + ステータス履歴 */}
+          {/* ===== 左カラム ===== */}
           <div className="space-y-4">
-            {/* Section 1: Request Info */}
+            {/* 依頼情報（常時表示） */}
             <div className="bg-card rounded-lg border border-border p-4">
               <h2 className="text-lg font-semibold text-foreground mb-3">依頼情報</h2>
               <div className="grid grid-cols-2 gap-2 bg-muted/50 rounded p-3 text-sm">
@@ -363,15 +324,13 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
               </div>
             </div>
 
-            {/* Document Selection（窓口待ちのみ表示） */}
-            {isAwaitingWindow && (
+            {/* 作成文書（窓口待ち && 編集権限あり） */}
+            {isAwaitingWindow && userCanEditDetail && (
               <div className="bg-card rounded-lg border border-border p-4">
                 <h2 className="text-lg font-semibold text-foreground mb-3">作成文書</h2>
                 <div className="space-y-2 p-3 bg-muted/30 rounded">
                   <div>
-                    <label className="block text-xs font-medium text-foreground mb-2">
-                      作成文書（複数選択可）
-                    </label>
+                    <label className="block text-xs font-medium text-foreground mb-2">作成文書（複数選択可）</label>
                     <div className="space-y-1">
                       {['商品規格書／商品カルテ', 'eBASE', '各種証明書', 'その他'].map((doc) => (
                         <label key={doc} className="flex items-center">
@@ -386,7 +345,8 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                       ))}
                     </div>
                   </div>
-                  {/* eBASE選択時の入力欄 */}
+
+                  {/* eBASE詳細入力 */}
                   {selectedDocuments.includes('eBASE') && (
                     <div className="mt-3 space-y-2 border border-border rounded p-3 bg-background">
                       <p className="text-xs font-semibold text-foreground">eBASE 詳細情報</p>
@@ -398,17 +358,21 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                           placeholder="例：黒ラベル 350ml缶、500ml缶" />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-foreground mb-1">書状・商品規格書へのリンク</label>
+                        <label className="block text-xs font-medium text-foreground mb-1">書状・商品規格書へのリンク（業務用は不要）</label>
                         <input type="text" value={ebaseSpecLink} onChange={(e) => setEbaseSpecLink(e.target.value)}
                           className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                          placeholder="URLを入力" />
+                          placeholder="URLを入力（ない場合は「なし」と記入）" />
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-foreground mb-1">展開図、立体図形</label>
-                        <p className="text-xs text-muted-foreground mb-1">GAZO-WEBや本社掲示板に格納している場合はその旨記載。それ以外はファイル添付してください。</p>
-                        <textarea value={ebaseDrawing} onChange={(e) => setEbaseDrawing(e.target.value)} rows={2}
-                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                          placeholder="格納場所やファイル名を記入" />
+                        <p className="text-xs text-muted-foreground mb-1">以下から選択（業務用の場合は不要）</p>
+                        <select value={ebaseDrawing} onChange={(e) => setEbaseDrawing(e.target.value)}
+                          className="w-full px-2 py-1.5 border border-input rounded-md bg-white text-sm text-foreground">
+                          <option value="">選択してください</option>
+                          <option value="GAZO-WEB">GAZO-WEB</option>
+                          <option value="本社掲示板">本社掲示板</option>
+                          <option value="その他">その他（ファイル添付必須）</option>
+                        </select>
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-foreground mb-1">ファイル添付</label>
@@ -450,7 +414,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                     </div>
                   )}
 
-                  {/* 各種証明書選択時の入力欄 */}
+                  {/* 各種証明書詳細入力 */}
                   {selectedDocuments.includes('各種証明書') && (
                     <div className="mt-3 space-y-2 border border-border rounded p-3 bg-background">
                       <p className="text-xs font-semibold text-foreground">各種証明書 詳細情報</p>
@@ -512,9 +476,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
 
                   {/* 作成依頼詳細 */}
                   <div className="mt-2">
-                    <label className="block text-xs font-medium text-foreground mb-1">
-                      作成依頼詳細（その他補足事項）
-                    </label>
+                    <label className="block text-xs font-medium text-foreground mb-1">作成依頼詳細（その他補足事項）</label>
                     <textarea
                       value={otherDocumentComment}
                       onChange={(e) => setOtherDocumentComment(e.target.value)}
@@ -527,27 +489,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
               </div>
             )}
 
-            {/* 作成担当者自動判定結果 - always visible for 窓口待ち */}
-            {isAwaitingWindow && (
-              <div className="bg-card rounded-lg border border-border p-4">
-                <h2 className="text-lg font-semibold text-foreground mb-3">作成担当者自動判定結果</h2>
-                <div className="space-y-2 bg-muted/50 rounded p-3 text-sm">
-                  <div className="flex">
-                    <div className="w-28 text-xs font-medium text-muted-foreground">作成文書:</div>
-                    <div className="text-foreground">{selectedDocuments.length > 0 ? selectedDocuments.join(', ') : '－'}</div>
-                  </div>
-                  <div className="flex">
-                    <div className="w-28 text-xs font-medium text-muted-foreground">作成部署:</div>
-                    <div className="text-foreground">{creatorDepartment || '－'}</div>
-                  </div>
-                  <div className="flex">
-                    <div className="w-28 text-xs font-medium text-muted-foreground">作成担当者:</div>
-                    <div className="text-foreground">{creators.length > 0 ? creators.join(', ') : '－'}</div>
-                  </div>
-                </div>
-              </div>
-            )}
-
+            {/* 作成依頼情報（作成中・完了） */}
             {!isAwaitingWindow && (
               <div className="bg-card rounded-lg border border-border p-4">
                 <h2 className="text-lg font-semibold text-foreground mb-3">作成依頼情報</h2>
@@ -556,9 +498,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                     <div className="w-28 text-xs font-medium text-muted-foreground">依頼者:</div>
                     <div className="text-foreground">
                       {(() => {
-                        const name =
-                          requestData.windowContacts?.find((n) => !n.includes('GL')) ??
-                          requestData.windowContacts?.[0];
+                        const name = requestData.windowContacts?.find((n) => !n.includes('GL')) ?? requestData.windowContacts?.[0];
                         return name ? `${requestData.windowDepartment} ${name}` : '－';
                       })()}
                     </div>
@@ -577,7 +517,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                   </div>
                 </div>
 
-                {/* eBASE 詳細情報（読み取り専用） */}
+                {/* eBASE詳細（読み取り専用） */}
                 {requestData.ebaseDetails && (
                   <div className="mt-3 border border-border rounded p-3 bg-muted/30">
                     <p className="text-xs font-semibold text-foreground mb-2">eBASE 詳細情報</p>
@@ -622,7 +562,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                   </div>
                 )}
 
-                {/* 各種証明書 詳細情報（読み取り専用） */}
+                {/* 各種証明書詳細（読み取り専用） */}
                 {requestData.certificateDetails && (
                   <div className="mt-3 border border-border rounded p-3 bg-muted/30">
                     <p className="text-xs font-semibold text-foreground mb-2">各種証明書 詳細情報</p>
@@ -663,8 +603,42 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
               </div>
             )}
 
-            {/* 作成担当者修正・作成依頼ボタン（窓口待ちかつ文書選択済みのみ表示） */}
-            {isAwaitingWindow && selectedDocuments.length > 0 && (
+            {/* 一覧に戻るボタン */}
+            <div className="flex gap-3">
+              <Link href="/list" className="flex-1">
+                <Button variant="outline" className="w-full h-8 text-sm">一覧に戻る</Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* ===== 右カラム ===== */}
+          <div className="space-y-4">
+            {/* コメント欄（常時表示） */}
+            {commentSection}
+
+            {/* 作成担当者自動判定結果（窓口待ち && 編集権限あり）← 左から移動 */}
+            {isAwaitingWindow && userCanEditDetail && (
+              <div className="bg-card rounded-lg border border-border p-4">
+                <h2 className="text-lg font-semibold text-foreground mb-3">作成担当者自動判定結果</h2>
+                <div className="space-y-2 bg-muted/50 rounded p-3 text-sm">
+                  <div className="flex">
+                    <div className="w-28 text-xs font-medium text-muted-foreground">作成文書:</div>
+                    <div className="text-foreground">{selectedDocuments.length > 0 ? selectedDocuments.join(', ') : '－'}</div>
+                  </div>
+                  <div className="flex">
+                    <div className="w-28 text-xs font-medium text-muted-foreground">作成部署:</div>
+                    <div className="text-foreground">{creatorDepartment || '－'}</div>
+                  </div>
+                  <div className="flex">
+                    <div className="w-28 text-xs font-medium text-muted-foreground">作成担当者:</div>
+                    <div className="text-foreground">{creators.length > 0 ? creators.join(', ') : '－'}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 作成依頼ボタン（窓口待ち && 編集権限あり && 文書選択済み）← 左から移動 */}
+            {isAwaitingWindow && userCanEditDetail && selectedDocuments.length > 0 && (
               <div className="flex gap-3">
                 <Button
                   onClick={() => alert('開発中です')}
@@ -683,51 +657,17 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
               </div>
             )}
 
-            {/* ステータス履歴 */}
-            <div className="bg-card rounded-lg border border-border p-4">
-              <h2 className="text-lg font-semibold text-foreground mb-3">ステータス履歴</h2>
-              <div className="space-y-2">
-                {requestData.statusHistory?.map((history) => (
-                  <div key={history.id} className="border-l-4 border-primary pl-3 py-1">
-                    <p className="font-semibold text-sm text-foreground">{getStatusLabel(history.status as RequestStatus)}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(history.changedDate).toLocaleString('ja-JP')}
-                    </p>
-                    {history.note && <p className="text-xs text-foreground mt-0.5">{history.note}</p>}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Buttons */}
-            <div className="flex gap-3">
-              <Link href="/list" className="flex-1">
-                <Button variant="outline" className="w-full h-8 text-sm">
-                  一覧に戻る
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          {/* Right column: コメント欄 + 完成文書 */}
-          <div className="space-y-4">
-            {/* コメント欄（全ステータス共通） */}
-            {commentSection}
-
-            {/* 完成文書の登録（窓口待ち以外） */}
-            {!isAwaitingWindow && (
+            {/* 完成文書（作成中・完了 && 編集権限あり） */}
+            {!isAwaitingWindow && userCanEditDetail && (
               <div className="bg-card rounded-lg border border-border p-4">
                 <h2 className="text-lg font-semibold text-foreground mb-3">
                   {isInProgress ? '完成文書の登録' : '登録済み文書'}
                 </h2>
 
-                {/* Registration Form（作成中のみ表示） */}
                 {isInProgress && (
                   <div className="mb-4 p-3 bg-muted/30 rounded space-y-2">
                     <div>
-                      <label className="block text-xs font-medium text-foreground mb-1">
-                        文書ファイル名
-                      </label>
+                      <label className="block text-xs font-medium text-foreground mb-1">文書ファイル名</label>
                       <input
                         type="text"
                         value={newDocumentName}
@@ -736,7 +676,6 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                         className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                     </div>
-
                     <div>
                       <label className="block text-xs font-medium text-foreground mb-1">登録日</label>
                       <input
@@ -746,7 +685,6 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                         className="w-full rounded-md border border-border bg-muted/50 px-2 py-1.5 text-sm text-foreground focus:outline-none"
                       />
                     </div>
-
                     <Button
                       onClick={() => setDialogType('document')}
                       className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 w-full text-sm"
@@ -756,7 +694,6 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                   </div>
                 )}
 
-                {/* Documents List */}
                 {requestData.completedDocuments && requestData.completedDocuments.length > 0 ? (
                   <div className="space-y-2">
                     {isInProgress && <h3 className="font-semibold text-sm text-foreground">登録済み文書</h3>}
@@ -776,6 +713,9 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                 )}
               </div>
             )}
+
+            {/* ステータス履歴（常時表示）← 左から移動 */}
+            {statusHistorySection}
           </div>
         </div>
 
@@ -790,9 +730,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
             </AlertDialogHeader>
             <div className="flex gap-3">
               <AlertDialogCancel>キャンセル</AlertDialogCancel>
-              <AlertDialogAction onClick={handleCreateRequest}>
-                送信
-              </AlertDialogAction>
+              <AlertDialogAction onClick={handleCreateRequest}>送信</AlertDialogAction>
             </div>
           </AlertDialogContent>
         </AlertDialog>
@@ -801,14 +739,10 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>送信完了</AlertDialogTitle>
-              <AlertDialogDescription>
-                作成依頼を送信しました。作成担当者にて対応が開始されます。
-              </AlertDialogDescription>
+              <AlertDialogDescription>作成依頼を送信しました。作成担当者にて対応が開始されます。</AlertDialogDescription>
             </AlertDialogHeader>
             <div className="flex gap-3 justify-end">
-              <AlertDialogAction onClick={() => setShowSuccessDialog(false)}>
-                OK
-              </AlertDialogAction>
+              <AlertDialogAction onClick={() => setShowSuccessDialog(false)}>OK</AlertDialogAction>
             </div>
           </AlertDialogContent>
         </AlertDialog>
@@ -823,9 +757,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
             </AlertDialogHeader>
             <div className="flex gap-3">
               <AlertDialogCancel>キャンセル</AlertDialogCancel>
-              <AlertDialogAction onClick={handleStatusUpdate}>
-                更新
-              </AlertDialogAction>
+              <AlertDialogAction onClick={handleStatusUpdate}>更新</AlertDialogAction>
             </div>
           </AlertDialogContent>
         </AlertDialog>
@@ -834,15 +766,11 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>文書を登録しますか？</AlertDialogTitle>
-              <AlertDialogDescription>
-                ファイル名: {newDocumentName}
-              </AlertDialogDescription>
+              <AlertDialogDescription>ファイル名: {newDocumentName}</AlertDialogDescription>
             </AlertDialogHeader>
             <div className="flex gap-3">
               <AlertDialogCancel>キャンセル</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDocumentRegistration}>
-                登録
-              </AlertDialogAction>
+              <AlertDialogAction onClick={handleDocumentRegistration}>登録</AlertDialogAction>
             </div>
           </AlertDialogContent>
         </AlertDialog>
@@ -851,15 +779,11 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>コメントを追加しますか？</AlertDialogTitle>
-              <AlertDialogDescription>
-                {newComment}
-              </AlertDialogDescription>
+              <AlertDialogDescription>{newComment}</AlertDialogDescription>
             </AlertDialogHeader>
             <div className="flex gap-3">
               <AlertDialogCancel>キャンセル</AlertDialogCancel>
-              <AlertDialogAction onClick={handleCommentAdd}>
-                追加
-              </AlertDialogAction>
+              <AlertDialogAction onClick={handleCommentAdd}>追加</AlertDialogAction>
             </div>
           </AlertDialogContent>
         </AlertDialog>

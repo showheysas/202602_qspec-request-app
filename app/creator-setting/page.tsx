@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useAccessGuard } from '@/hooks/useAccessGuard';
 import { getCreatorContacts } from '@/utils/contactDummyData';
 import { CreatorContact } from '@/lib/types/contact';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,7 @@ const CATEGORY_OPTIONS = [
 ];
 
 export default function CreatorSettingPage() {
+  useAccessGuard();
   const [contacts, setContacts] = useState<CreatorContact[]>(() => getCreatorContacts());
   const [editingContact, setEditingContact] = useState<CreatorContact | null>(null);
   const [isAddMode, setIsAddMode] = useState(false);

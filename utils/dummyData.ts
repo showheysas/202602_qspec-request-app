@@ -494,10 +494,20 @@ function initializeStore() {
   }
 }
 
+export function getAllRequests(): RequestData[] {
+  initializeStore();
+  return Array.from(requestsStore.values());
+}
+
 export function getRequestById(id: string): RequestData | null {
   initializeStore();
   const request = requestsStore.get(id);
   return request || null;
+}
+
+export function addRequest(request: RequestData): void {
+  initializeStore();
+  requestsStore.set(request.id, request);
 }
 
 export function addComment(requestId: string, author: string, content: string): Comment | null {
