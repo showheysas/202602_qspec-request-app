@@ -488,7 +488,7 @@ let initialized = false;
 function initializeStore() {
   if (!initialized) {
     getDummyRequests().forEach((req) => {
-      requestsStore.set(req.id, JSON.parse(JSON.stringify(req)));
+      requestsStore.set(req.id, { ...req });
     });
     initialized = true;
   }
