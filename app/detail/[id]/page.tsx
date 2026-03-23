@@ -164,6 +164,22 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
       toast({ title: 'エラー', description: '作成文書を最低1つ選択してください', variant: 'destructive', duration: 3000 });
       return;
     }
+    // eBASE 商品名の必須チェック
+    if (selectedDocuments.includes('eBASE') && !ebaseProductName.trim()) {
+      toast({ title: 'エラー', description: 'eBASE の商品名は必須です', variant: 'destructive', duration: 3000 });
+      return;
+    }
+    // 各種証明書の全項目必須チェック
+    if (selectedDocuments.includes('各種証明書')) {
+      if (!certDestName.trim() || !certType.trim() || !certItemName.trim() || !certCopies.trim() || !certSealRequired || !certOriginalNeeded) {
+        toast({ title: 'エラー', description: '各種証明書の全項目を入力してください', variant: 'destructive', duration: 3000 });
+        return;
+      }
+      if (certOriginalNeeded === 'あり' && !certShipTo.trim()) {
+        toast({ title: 'エラー', description: '常便送り先を入力してください', variant: 'destructive', duration: 3000 });
+        return;
+      }
+    }
     if (!requestData) return;
     const creatorResult = assignCreator(requestData.categories, selectedDocuments);
     updateRequestStatus(id, 'creator-processing' as RequestStatus);
@@ -351,7 +367,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                     <div className="mt-3 space-y-2 border border-border rounded p-3 bg-background">
                       <p className="text-xs font-semibold text-foreground">eBASE 詳細情報</p>
                       <div>
-                        <label className="block text-xs font-medium text-foreground mb-1">商品名</label>
+                        <label className="block text-xs font-medium text-foreground mb-1">商品名 *</label>
                         <p className="text-xs text-muted-foreground mb-1">対象商品を具体的に、正式名称で記入してください。複数SKUが存在する商品のうち350P・500Pだけ依頼する場合などは、その旨記入してください。</p>
                         <textarea value={ebaseProductName} onChange={(e) => setEbaseProductName(e.target.value)} rows={2}
                           className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
@@ -419,33 +435,33 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                     <div className="mt-3 space-y-2 border border-border rounded p-3 bg-background">
                       <p className="text-xs font-semibold text-foreground">各種証明書 詳細情報</p>
                       <div>
-                        <label className="block text-xs font-medium text-foreground mb-1">提出先の正式名称</label>
+                        <label className="block text-xs font-medium text-foreground mb-1">提出先の正式名称 *</label>
                         <input type="text" value={certDestName} onChange={(e) => setCertDestName(e.target.value)}
                           className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                           placeholder="正式名称を入力" />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-foreground mb-1">証明書の種類</label>
+                        <label className="block text-xs font-medium text-foreground mb-1">証明書の種類 *</label>
                         <p className="text-xs text-muted-foreground mb-1">どのような内容の証明書が必要か</p>
                         <textarea value={certType} onChange={(e) => setCertType(e.target.value)} rows={2}
                           className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                           placeholder="例：原産地証明書、アレルゲン不使用証明書" />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-foreground mb-1">対象アイテム名</label>
+                        <label className="block text-xs font-medium text-foreground mb-1">対象アイテム名 *</label>
                         <input type="text" value={certItemName} onChange={(e) => setCertItemName(e.target.value)}
                           className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                           placeholder="対象アイテム名を入力" />
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="block text-xs font-medium text-foreground mb-1">必要部数</label>
+                          <label className="block text-xs font-medium text-foreground mb-1">必要部数 *</label>
                           <input type="text" value={certCopies} onChange={(e) => setCertCopies(e.target.value)}
                             className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                             placeholder="例：2部" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-foreground mb-1">捺印の要否</label>
+                          <label className="block text-xs font-medium text-foreground mb-1">捺印の要否 *</label>
                           <select value={certSealRequired} onChange={(e) => setCertSealRequired(e.target.value)}
                             className="w-full px-2 py-1.5 border border-input rounded-md bg-white text-sm text-foreground">
                             <option value="">選択してください</option>
@@ -455,7 +471,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-foreground mb-1">証明書原本を常便で送る必要性</label>
+                        <label className="block text-xs font-medium text-foreground mb-1">証明書原本を常便で送る必要性 *</label>
                         <select value={certOriginalNeeded} onChange={(e) => setCertOriginalNeeded(e.target.value)}
                           className="w-full px-2 py-1.5 border border-input rounded-md bg-white text-sm text-foreground">
                           <option value="">選択してください</option>
@@ -465,7 +481,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                       </div>
                       {certOriginalNeeded === 'あり' && (
                         <div>
-                          <label className="block text-xs font-medium text-foreground mb-1">常便送り先の拠点・部署・名前</label>
+                          <label className="block text-xs font-medium text-foreground mb-1">常便送り先の拠点・部署・名前 *</label>
                           <input type="text" value={certShipTo} onChange={(e) => setCertShipTo(e.target.value)}
                             className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                             placeholder="例：東京本社 営業企画部 山田太郎" />

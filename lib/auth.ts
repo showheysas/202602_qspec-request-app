@@ -54,7 +54,7 @@ export function canEditDetail(role: UserRole): boolean {
   return role === 'window' || role === 'creator' || role === 'admin';
 }
 
-/** 管理者のみ全ステータスを見られる（その他は窓口待ちのみ） */
+/** 企画者以外は全ステータスを見られる（企画者は窓口待ちのみ） */
 export function canSeeAllStatuses(role: UserRole): boolean {
-  return role === 'admin';
+  return role === 'window' || role === 'creator' || role === 'admin';
 }

@@ -207,22 +207,6 @@ export default function CompletedDetailPage({ params }: { params: Promise<{ id: 
                 )}
             </div>
 
-            {/* ステータス履歴 */}
-            <div className="bg-card rounded-lg border border-border p-4">
-              <h2 className="text-lg font-semibold text-foreground mb-3">ステータス履歴</h2>
-              <div className="space-y-2">
-                {requestData.statusHistory?.map((history) => (
-                  <div key={history.id} className="border-l-4 border-primary pl-3 py-1">
-                    <p className="font-semibold text-sm text-foreground">{getStatusLabel(history.status)}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(history.changedDate).toLocaleString('ja-JP')}
-                    </p>
-                    {history.note && <p className="text-xs text-foreground mt-0.5">{history.note}</p>}
-                  </div>
-                ))}
-              </div>
-            </div>
-
             <Link href="/completed">
               <Button variant="outline" className="w-full h-8 text-sm">
                 完成文書一覧に戻る
@@ -256,6 +240,22 @@ export default function CompletedDetailPage({ params }: { params: Promise<{ id: 
               ) : (
                 <p className="text-muted-foreground text-xs">登録済みの文書はありません</p>
               )}
+            </div>
+
+            {/* ステータス履歴 */}
+            <div className="bg-card rounded-lg border border-border p-4">
+              <h2 className="text-lg font-semibold text-foreground mb-3">ステータス履歴</h2>
+              <div className="space-y-2">
+                {requestData.statusHistory?.map((history) => (
+                  <div key={history.id} className="border-l-4 border-primary pl-3 py-1">
+                    <p className="font-semibold text-sm text-foreground">{getStatusLabel(history.status)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(history.changedDate).toLocaleString('ja-JP')}
+                    </p>
+                    {history.note && <p className="text-xs text-foreground mt-0.5">{history.note}</p>}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
