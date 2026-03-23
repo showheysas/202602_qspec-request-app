@@ -38,7 +38,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   // eBASE用フィールド
-  const [ebaseProductName, setEbaseProductName] = useState('');
+  const [ebaseProducts, setEbaseProducts] = useState<{ name: string; varietyCode: string; remarks: string }[]>([{ name: '', varietyCode: '', remarks: '' }]);
   const [ebaseSpecLink, setEbaseSpecLink] = useState('');
   const [ebaseDrawing, setEbaseDrawing] = useState('');
   const [ebaseFiles, setEbaseFiles] = useState<File[]>([]);
@@ -165,8 +165,8 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
       return;
     }
     // eBASE 商品名の必須チェック
-    if (selectedDocuments.includes('eBASE') && !ebaseProductName.trim()) {
-      toast({ title: 'エラー', description: 'eBASE の商品名は必須です', variant: 'destructive', duration: 3000 });
+    if (selectedDocuments.includes('eBASE') && !ebaseProducts.some((p) => p.name.trim())) {
+      toast({ title: 'エラー', description: 'eBASE の商品名は最低1つ入力してください', variant: 'destructive', duration: 3000 });
       return;
     }
     // 各種証明書の全項目必須チェック
@@ -367,11 +367,58 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                     <div className="mt-3 space-y-2 border border-border rounded p-3 bg-background">
                       <p className="text-xs font-semibold text-foreground">eBASE 詳細情報</p>
                       <div>
-                        <label className="block text-xs font-medium text-foreground mb-1">商品名 *</label>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-xs font-medium text-foreground">商品情報 *</label>
+                          <button
+                            type="button"
+                            onClick={() => setEbaseProducts((prev) => [...prev, { name: '', varietyCode: '', remarks: '' }])}
+                            className="text-xs text-primary hover:underline font-medium flex items-center gap-1"
+                          >
+                            ＋ 商品を追加
+                          </button>
+                        </div>
                         <p className="text-xs text-muted-foreground mb-1">対象商品を具体的に、正式名称で記入してください。複数SKUが存在する商品のうち350P・500Pだけ依頼する場合などは、その旨記入してください。</p>
-                        <textarea value={ebaseProductName} onChange={(e) => setEbaseProductName(e.target.value)} rows={2}
-                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                          placeholder="例：黒ラベル 350ml缶、500ml缶" />
+                        {ebaseProducts.map((product, index) => (
+                          <div key={index} className="flex gap-2 items-start mb-1">
+                            <div className="flex-1">
+                              <input
+                                type="text"
+                                value={product.name}
+                                onChange={(e) => setEbaseProducts((prev) => prev.map((p, i) => i === index ? { ...p, name: e.target.value } : p))}
+                                className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="商品名"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <input
+                                type="text"
+                                value={product.varietyCode}
+                                onChange={(e) => setEbaseProducts((prev) => prev.map((p, i) => i === index ? { ...p, varietyCode: e.target.value } : p))}
+                                className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="品種コード（親・子がある場合は両方）"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <input
+                                type="text"
+                                value={product.remarks}
+                                onChange={(e) => setEbaseProducts((prev) => prev.map((p, i) => i === index ? { ...p, remarks: e.target.value } : p))}
+                                className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="備考"
+                              />
+                            </div>
+                            {ebaseProducts.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => setEbaseProducts((prev) => prev.filter((_, i) => i !== index))}
+                                className="text-destructive hover:text-destructive/80 text-sm px-1 pt-1.5"
+                                title="削除"
+                              >
+                                ✕
+                              </button>
+                            )}
+                          </div>
+                        ))}
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-foreground mb-1">書状・商品規格書へのリンク（業務用は不要）</label>
