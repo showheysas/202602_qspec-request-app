@@ -33,6 +33,8 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
   const [newComment, setNewComment] = useState('');
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
   const [otherDocumentComment, setOtherDocumentComment] = useState('');
+  const [createMode, setCreateMode] = useState<'asIs' | 'modified'>('asIs');
+  const [modificationNote, setModificationNote] = useState('');
   const [creatorDepartment, setCreatorDepartment] = useState('');
   const [creators, setCreators] = useState<string[]>([]);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
@@ -169,21 +171,9 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
       toast({ title: 'エラー', description: '作成文書を最低1つ選択してください', variant: 'destructive', duration: 3000 });
       return;
     }
-    // eBASE 商品名の必須チェック
-    if (selectedDocuments.includes('eBASE') && !ebaseProducts.some((p) => p.name.trim())) {
-      toast({ title: 'エラー', description: 'eBASE の商品名は最低1つ入力してください', variant: 'destructive', duration: 3000 });
+    if (createMode === 'modified' && !modificationNote.trim()) {
+      toast({ title: 'エラー', description: '変更部分を記入してください', variant: 'destructive', duration: 3000 });
       return;
-    }
-    // 各種証明書の全項目必須チェック
-    if (selectedDocuments.includes('各種証明書')) {
-      if (!certDestName.trim() || !certType.trim() || !certCopies.trim() || !certSealRequired || !certOriginalNeeded) {
-        toast({ title: 'エラー', description: '各種証明書の全項目を入力してください', variant: 'destructive', duration: 3000 });
-        return;
-      }
-      if (certOriginalNeeded === 'あり' && !certShipTo.trim()) {
-        toast({ title: 'エラー', description: '常便送り先を入力してください', variant: 'destructive', duration: 3000 });
-        return;
-      }
     }
     if (!requestData) return;
     const creatorResult = assignCreator(requestData.categories, selectedDocuments);
@@ -462,77 +452,12 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
               )}
             </div>
 
-            {/* 作成文書（窓口待ち && 編集権限あり） */}
+            {/* 窓口担当者対応（窓口待ち && 編集権限あり） */}
             {isAwaitingWindow && userCanEditDetail && (
               <div className="bg-card rounded-lg border border-border p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-lg font-semibold text-foreground">作成文書</h2>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="text-xs h-7"
-                    onClick={() => {
-                      // 文書種別に応じたチェックボックスを自動選択
-                      const docType = requestData.documentType;
-                      const docMap: Record<string, string> = {
-                        '商品規格書／商品カルテ': '商品規格書／商品カルテ',
-                        'eBASE': 'eBASE',
-                        '各種証明書': '各種証明書',
-                        'その他': 'その他',
-                      };
-                      const target = docMap[docType];
-                      if (target && !selectedDocuments.includes(target)) {
-                        toggleDocument(target);
-                      }
-                      // 依頼情報からeBASE/証明書詳細を転記
-                      if (requestData.ebaseDetails) {
-                        const names = requestData.ebaseDetails.productName?.split('、').filter(Boolean) || [];
-                        if (names.length > 0) {
-                          setEbaseProducts(names.map((n) => ({ name: n, varietyCode: '', remarks: '' })));
-                        }
-                        setEbaseSpecLink(requestData.ebaseDetails.specLink || '');
-                        setEbaseDrawing(requestData.ebaseDetails.drawing || '');
-                        setEbaseDesignNote(requestData.ebaseDetails.designNote || '');
-                        setEbaseTempImage(requestData.ebaseDetails.tempImage || '');
-                        setEbasePackaging(requestData.ebaseDetails.packaging || '');
-                      }
-                      if (requestData.certificateDetails) {
-                        setCertDestName(requestData.certificateDetails.destName || '');
-                        setCertType(requestData.certificateDetails.certType || '');
-                        setCertCopies(requestData.certificateDetails.copies || '');
-                        setCertSealRequired(requestData.certificateDetails.sealRequired || '');
-                        setCertOriginalNeeded(requestData.certificateDetails.originalNeeded || '');
-                        setCertShipTo(requestData.certificateDetails.shipTo || '');
-                      }
-                      toast({ title: '転記完了', description: '依頼情報を転記しました', duration: 2000 });
-                    }}
-                  >
-                    依頼情報を転記
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="text-xs h-7"
-                    onClick={() => {
-                      setSelectedDocuments([]);
-                      setCreatorDepartment('');
-                      setCreators([]);
-                      setEbaseProducts([{ name: '', varietyCode: '', remarks: '' }]);
-                      setEbaseSpecLink(''); setEbaseDrawing(''); setEbaseFiles([]);
-                      setEbaseDesignNote(''); setEbaseTempImage(''); setEbasePackaging('');
-                      setCertProducts([{ name: '', varietyCode: '', remarks: '' }]);
-                      setCertDestName(''); setCertType('');
-                      setCertCopies(''); setCertSealRequired(''); setCertOriginalNeeded(''); setCertShipTo('');
-                      setOtherDocumentComment('');
-                      toast({ title: 'クリア', description: '入力情報をクリアしました', duration: 2000 });
-                    }}
-                  >
-                    クリア
-                  </Button>
-                </div>
-                <div className="space-y-2 p-3 bg-muted/30 rounded">
+                <h2 className="text-lg font-semibold text-foreground mb-3">窓口担当者対応</h2>
+                <div className="space-y-3 p-3 bg-muted/30 rounded">
+                  {/* 作成文書チェックボックス */}
                   <div>
                     <label className="block text-xs font-medium text-foreground mb-2">作成文書（複数選択可）</label>
                     <div className="space-y-1">
@@ -550,228 +475,46 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                     </div>
                   </div>
 
-                  {/* eBASE詳細入力 */}
-                  {selectedDocuments.includes('eBASE') && (
-                    <div className="mt-3 space-y-2 border border-border rounded p-3 bg-background">
-                      <p className="text-xs font-semibold text-foreground">eBASE 詳細情報</p>
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <label className="block text-xs font-medium text-foreground">商品情報 *</label>
-                          <button
-                            type="button"
-                            onClick={() => setEbaseProducts((prev) => [...prev, { name: '', varietyCode: '', remarks: '' }])}
-                            className="text-xs text-primary hover:underline font-medium flex items-center gap-1"
-                          >
-                            ＋ 商品を追加
-                          </button>
-                        </div>
-                        <p className="text-xs text-muted-foreground mb-1">対象商品を具体的に、正式名称で記入してください。複数SKUが存在する商品のうち350P・500Pだけ依頼する場合などは、その旨記入してください。</p>
-                        {ebaseProducts.map((product, index) => (
-                          <div key={index} className="flex gap-2 items-start mb-1">
-                            <div className="flex-1">
-                              <input
-                                type="text"
-                                value={product.name}
-                                onChange={(e) => setEbaseProducts((prev) => prev.map((p, i) => i === index ? { ...p, name: e.target.value } : p))}
-                                className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                                placeholder="商品名"
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <input
-                                type="text"
-                                value={product.varietyCode}
-                                onChange={(e) => setEbaseProducts((prev) => prev.map((p, i) => i === index ? { ...p, varietyCode: e.target.value } : p))}
-                                className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                                placeholder="品種コード（親・子がある場合は両方）"
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <input
-                                type="text"
-                                value={product.remarks}
-                                onChange={(e) => setEbaseProducts((prev) => prev.map((p, i) => i === index ? { ...p, remarks: e.target.value } : p))}
-                                className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                                placeholder="備考"
-                              />
-                            </div>
-                            {ebaseProducts.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => setEbaseProducts((prev) => prev.filter((_, i) => i !== index))}
-                                className="text-destructive hover:text-destructive/80 text-sm px-1 pt-1.5"
-                                title="削除"
-                              >
-                                ✕
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                      {/* 家庭用の場合のみ全項目表示、業務用は商品情報のみ */}
-                      {!isBusinessOnly && (
-                        <>
-                          <div>
-                            <label className="block text-xs font-medium text-foreground mb-1">書状・商品規格書へのリンク</label>
-                            <input type="text" value={ebaseSpecLink} onChange={(e) => setEbaseSpecLink(e.target.value)}
-                              className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                              placeholder="URLを入力（ない場合は「なし」と記入）" />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-foreground mb-1">展開図、立体図形</label>
-                            <select value={ebaseDrawing} onChange={(e) => setEbaseDrawing(e.target.value)}
-                              className="w-full px-2 py-1.5 border border-input rounded-md bg-white text-sm text-foreground">
-                              <option value="">選択してください</option>
-                              <option value="GAZO-WEB">GAZO-WEB</option>
-                              <option value="本社掲示板">本社掲示板</option>
-                              <option value="その他">その他（ファイル添付必須）</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-foreground mb-1">ファイル添付</label>
-                            <input type="file" multiple
-                              onChange={(e) => { if (e.target.files) setEbaseFiles((prev) => [...prev, ...Array.from(e.target.files!)]); }}
-                              className="w-full text-sm text-foreground file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer" />
-                            {ebaseFiles.length > 0 && (
-                              <div className="mt-1 space-y-0.5">
-                                {ebaseFiles.map((file, i) => (
-                                  <div key={i} className="flex items-center justify-between bg-muted/30 rounded px-2 py-0.5">
-                                    <span className="text-xs text-foreground truncate">{file.name}</span>
-                                    <button type="button" onClick={() => setEbaseFiles((prev) => prev.filter((_, idx) => idx !== i))}
-                                      className="text-xs text-destructive hover:underline ml-2">削除</button>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-foreground mb-1">通常デザインと異なる場合は記入</label>
-                            <p className="text-xs text-muted-foreground mb-1">「新」「NEW」が外れる、「キャンペーンスリーブ・カートン使用」など</p>
-                            <input type="text" value={ebaseDesignNote} onChange={(e) => setEbaseDesignNote(e.target.value)}
-                              className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                              placeholder="変更点を記入" />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-foreground mb-1">仮画像の場合、どの画像が仮画像か、また、画像確定予定日を記入</label>
-                            <input type="text" value={ebaseTempImage} onChange={(e) => setEbaseTempImage(e.target.value)}
-                              className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                              placeholder="例：正面画像が仮、確定予定 2026/02/15" />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-foreground mb-1">通常の包材以外の場合、包材の単体重量を記入</label>
-                            <p className="text-xs text-muted-foreground mb-1">ミカン箱型カートン、ギフトカートン、企画品の特殊カートン等</p>
-                            <input type="text" value={ebasePackaging} onChange={(e) => setEbasePackaging(e.target.value)}
-                              className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                              placeholder="包材名と重量を記入" />
-                          </div>
-                        </>
-                      )}
-                      {isBusinessOnly && (
-                        <p className="text-xs text-muted-foreground">業務用のため、商品情報のみ入力してください。</p>
-                      )}
+                  {/* 作成方法の選択 */}
+                  <div>
+                    <label className="block text-xs font-medium text-foreground mb-2">作成方法</label>
+                    <div className="space-y-1">
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="createMode"
+                          checked={createMode === 'asIs'}
+                          onChange={() => setCreateMode('asIs')}
+                          className="w-3.5 h-3.5 border-border text-primary"
+                        />
+                        <span className="ml-1.5 text-xs text-foreground">依頼情報の内容で作成</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="createMode"
+                          checked={createMode === 'modified'}
+                          onChange={() => setCreateMode('modified')}
+                          className="w-3.5 h-3.5 border-border text-primary"
+                        />
+                        <span className="ml-1.5 text-xs text-foreground">依頼情報を変更・情報追加して作成</span>
+                      </label>
                     </div>
-                  )}
-
-                  {/* 各種証明書詳細入力 */}
-                  {selectedDocuments.includes('各種証明書') && (
-                    <div className="mt-3 space-y-2 border border-border rounded p-3 bg-background">
-                      <p className="text-xs font-semibold text-foreground">各種証明書 詳細情報</p>
-                      {/* 商品情報入力 */}
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <label className="block text-xs font-medium text-foreground">商品情報</label>
-                          <button type="button"
-                            onClick={() => setCertProducts((prev) => [...prev, { name: '', varietyCode: '', remarks: '' }])}
-                            className="text-xs text-primary hover:underline font-medium">＋ 商品を追加</button>
-                        </div>
-                        {certProducts.map((product, index) => (
-                          <div key={index} className="flex gap-2 items-start mb-1">
-                            <div className="flex-1">
-                              <input type="text" value={product.name}
-                                onChange={(e) => setCertProducts((prev) => prev.map((p, i) => i === index ? { ...p, name: e.target.value } : p))}
-                                className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                                placeholder="商品名" />
-                            </div>
-                            <div className="flex-1">
-                              <input type="text" value={product.varietyCode}
-                                onChange={(e) => setCertProducts((prev) => prev.map((p, i) => i === index ? { ...p, varietyCode: e.target.value } : p))}
-                                className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                                placeholder="品種コード" />
-                            </div>
-                            <div className="flex-1">
-                              <input type="text" value={product.remarks}
-                                onChange={(e) => setCertProducts((prev) => prev.map((p, i) => i === index ? { ...p, remarks: e.target.value } : p))}
-                                className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                                placeholder="備考" />
-                            </div>
-                            {certProducts.length > 1 && (
-                              <button type="button" onClick={() => setCertProducts((prev) => prev.filter((_, i) => i !== index))}
-                                className="text-destructive hover:text-destructive/80 text-sm px-1 pt-1.5" title="削除">✕</button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-foreground mb-1">提出先の正式名称 *</label>
-                        <input type="text" value={certDestName} onChange={(e) => setCertDestName(e.target.value)}
-                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                          placeholder="正式名称を入力" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-foreground mb-1">証明書の種類 *</label>
-                        <p className="text-xs text-muted-foreground mb-1">どのような内容の証明書が必要か</p>
-                        <textarea value={certType} onChange={(e) => setCertType(e.target.value)} rows={2}
-                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                          placeholder="例：原産地証明書、アレルゲン不使用証明書" />
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-xs font-medium text-foreground mb-1">必要部数 *</label>
-                          <input type="text" value={certCopies} onChange={(e) => setCertCopies(e.target.value)}
-                            className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="例：2部" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-foreground mb-1">捺印の要否 *</label>
-                          <select value={certSealRequired} onChange={(e) => setCertSealRequired(e.target.value)}
-                            className="w-full px-2 py-1.5 border border-input rounded-md bg-white text-sm text-foreground">
-                            <option value="">選択してください</option>
-                            <option value="要">要</option>
-                            <option value="否">否</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-foreground mb-1">証明書原本を常便で送る必要性 *</label>
-                        <select value={certOriginalNeeded} onChange={(e) => setCertOriginalNeeded(e.target.value)}
-                          className="w-full px-2 py-1.5 border border-input rounded-md bg-white text-sm text-foreground">
-                          <option value="">選択してください</option>
-                          <option value="あり">あり</option>
-                          <option value="なし">なし</option>
-                        </select>
-                      </div>
-                      {certOriginalNeeded === 'あり' && (
-                        <div>
-                          <label className="block text-xs font-medium text-foreground mb-1">常便送り先の拠点・部署・名前 *</label>
-                          <input type="text" value={certShipTo} onChange={(e) => setCertShipTo(e.target.value)}
-                            className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="例：東京本社 営業企画部 山田太郎" />
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* 作成依頼詳細 */}
-                  <div className="mt-2">
-                    <label className="block text-xs font-medium text-foreground mb-1">作成依頼詳細（その他補足事項）</label>
-                    <textarea
-                      value={otherDocumentComment}
-                      onChange={(e) => setOtherDocumentComment(e.target.value)}
-                      placeholder="その他の補足事項があれば入力してください"
-                      rows={2}
-                      className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
                   </div>
+
+                  {/* 変更部分を記入（変更して作成の場合のみ） */}
+                  {createMode === 'modified' && (
+                    <div>
+                      <label className="block text-xs font-medium text-foreground mb-1">変更部分を記入 *</label>
+                      <textarea
+                        value={modificationNote}
+                        onChange={(e) => setModificationNote(e.target.value)}
+                        placeholder="依頼情報から変更する部分を具体的に記入してください"
+                        rows={3}
+                        className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             )}
