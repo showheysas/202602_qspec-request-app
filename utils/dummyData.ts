@@ -76,7 +76,7 @@ export function getWindowContactRequests(): RequestData[] {
     certificateDetails?: CertificateDetails;
   }> = [
     {
-      products: [{ name: '黒ラベル350ml', code: 'BL-350' }],
+      products: [{ name: '黒ラベル350ml', code: 'BL17' }],
       categories: ['ビールテイスト'],
       businessTypes: ['家庭用'],
       submissionDestination: '〇〇商社',
@@ -84,7 +84,7 @@ export function getWindowContactRequests(): RequestData[] {
       documentType: '商品規格書／商品カルテ',
     },
     {
-      products: [{ name: 'ヱビスビール（2026年リニューアル）', code: 'EB-2026' }],
+      products: [{ name: 'ヱビスビール（2026年リニューアル）', code: 'EB43' }],
       categories: ['ビールテイスト'],
       businessTypes: ['家庭用', '業務用'],
       submissionDestination: '△△流通',
@@ -92,7 +92,7 @@ export function getWindowContactRequests(): RequestData[] {
       documentType: '商品規格書／商品カルテ',
     },
     {
-      products: [{ name: 'サッポロ生ビール黒ラベル 樽20L', code: 'BL-D20' }],
+      products: [{ name: 'サッポロ生ビール黒ラベル 樽20L', code: 'BD58' }],
       categories: ['ビールテイスト'],
       businessTypes: ['業務用'],
       submissionDestination: '□□外食',
@@ -101,7 +101,6 @@ export function getWindowContactRequests(): RequestData[] {
       certificateDetails: {
         destName: '株式会社□□外食サービス',
         certType: 'アレルゲン不使用証明書（特定原材料7品目）',
-        itemName: 'サッポロ生ビール黒ラベル 樽20L',
         copies: '2部',
         sealRequired: '要',
         originalNeeded: 'あり',
@@ -109,7 +108,7 @@ export function getWindowContactRequests(): RequestData[] {
       },
     },
     {
-      products: [{ name: '男梅サワー', code: 'UMS-500' }],
+      products: [{ name: '男梅サワー', code: 'UM92' }],
       categories: ['RTD'],
       businessTypes: ['家庭用'],
       submissionDestination: '〇〇商社',
@@ -117,7 +116,7 @@ export function getWindowContactRequests(): RequestData[] {
       documentType: '商品規格書／商品カルテ',
     },
     {
-      products: [{ name: '濃いめのレモンサワーの素', code: 'KLS-700' }],
+      products: [{ name: '濃いめのレモンサワーの素', code: 'KL36' }],
       categories: ['RTS'],
       businessTypes: ['家庭用'],
       submissionDestination: '◇◇商社',
@@ -125,7 +124,7 @@ export function getWindowContactRequests(): RequestData[] {
       documentType: '商品規格書／商品カルテ',
     },
     {
-      products: [{ name: 'こいむぎ', code: 'KM-720' }],
+      products: [{ name: 'こいむぎ', code: 'KM74' }],
       categories: ['和酒'],
       businessTypes: ['業務用'],
       submissionDestination: '■■外食',
@@ -133,7 +132,7 @@ export function getWindowContactRequests(): RequestData[] {
       documentType: '商品規格書／商品カルテ',
     },
     {
-      products: [{ name: 'バカルディ スペリオール', code: 'BC-SUP-750' }],
+      products: [{ name: 'バカルディ スペリオール', code: 'BS21' }],
       categories: ['バカルディ社製品'],
       businessTypes: ['家庭用'],
       submissionDestination: '▲▲商社',
@@ -142,7 +141,6 @@ export function getWindowContactRequests(): RequestData[] {
       certificateDetails: {
         destName: '株式会社▲▲商社',
         certType: '原産地証明書',
-        itemName: 'バカルディ スペリオール 750ml',
         copies: '1部',
         sealRequired: '否',
         originalNeeded: 'なし',
@@ -150,7 +148,7 @@ export function getWindowContactRequests(): RequestData[] {
       },
     },
     {
-      products: [{ name: 'デュワーズホワイトラベル', code: 'DWL-700' }],
+      products: [{ name: 'デュワーズホワイトラベル', code: 'DW85' }],
       categories: ['輸入ワイン・洋酒'],
       businessTypes: ['業務用'],
       submissionDestination: '★★外食',
@@ -158,7 +156,7 @@ export function getWindowContactRequests(): RequestData[] {
       documentType: '商品規格書／商品カルテ',
     },
     {
-      products: [{ name: 'サンタ・リタ　スリー・メダルズ　メルロー', code: 'SR-ML-750' }],
+      products: [{ name: 'サンタ・リタ　スリー・メダルズ　メルロー', code: 'SR49' }],
       categories: ['輸入ワイン・洋酒'],
       businessTypes: ['家庭用'],
       submissionDestination: '◆◆商社',
@@ -175,12 +173,29 @@ export function getWindowContactRequests(): RequestData[] {
       },
     },
     {
-      products: [{ name: 'グランポレール　余市ケルナー２０２５', code: 'GP-YK-750' }],
+      products: [{ name: 'グランポレール　余市ケルナー２０２５', code: 'GP63' }],
       categories: ['国内製造ワイン・洋酒'],
       businessTypes: ['業務用'],
       submissionDestination: '●●外食',
       submissionDeadline: '2026-01-29',
       documentType: '商品規格書／商品カルテ',
+    },
+    {
+      products: [{ name: 'サッポロクラシック', code: 'SC27' }],
+      categories: ['ビールテイスト'],
+      businessTypes: ['家庭用'],
+      submissionDestination: '北海道コープ',
+      submissionDeadline: '2026-02-05',
+      documentType: 'eBASE',
+      ebaseDetails: {
+        productName: 'サッポロクラシック 350ml缶・500ml缶',
+        specLink: 'https://internal.example.com/specs/classic-2026',
+        drawing: 'GAZO-WEB「クラシック2026」フォルダに格納済み',
+        fileNames: ['クラシック_展開図.pdf'],
+        designNote: '',
+        tempImage: '',
+        packaging: '',
+      },
     },
   ];
 
@@ -257,7 +272,7 @@ export function getDummyRequests(): RequestData[] {
   }> = [
     {
       id: 'REQ-WC-001-IP',
-      products: [{ name: '黒ラベル350ml', code: 'BL-350' }],
+      products: [{ name: '黒ラベル350ml', code: 'BL17' }],
       categories: ['ビールテイスト'],
       businessTypes: ['家庭用'],
       submissionDestination: '〇〇商社',
@@ -267,8 +282,8 @@ export function getDummyRequests(): RequestData[] {
     {
       id: 'REQ-WC-002-IP',
       products: [
-        { name: 'ヱビスビール（2026年リニューアル）', code: 'EB-2026' },
-        { name: 'ヱビスビール　マイスター', code: 'EB-MS-350' },
+        { name: 'ヱビスビール（2026年リニューアル）', code: 'EB43' },
+        { name: 'ヱビスビール　マイスター', code: 'EM15' },
       ],
       categories: ['ビールテイスト'],
       businessTypes: ['家庭用', '業務用'],
@@ -287,7 +302,7 @@ export function getDummyRequests(): RequestData[] {
     },
     {
       id: 'REQ-WC-003-IP',
-      products: [],
+      products: [{ name: 'サッポロ生ビール黒ラベル 樽20L', code: 'BD58' }],
       categories: ['ビールテイスト'],
       businessTypes: ['業務用'],
       submissionDestination: '□□外食',
@@ -296,7 +311,6 @@ export function getDummyRequests(): RequestData[] {
       certificateDetails: {
         destName: '株式会社□□外食サービス',
         certType: 'アレルゲン不使用証明書（特定原材料7品目）',
-        itemName: 'サッポロ生ビール黒ラベル 樽20L',
         copies: '2部',
         sealRequired: '要',
         originalNeeded: 'あり',
@@ -395,7 +409,7 @@ export function getDummyRequests(): RequestData[] {
   }> = [
     {
       id: 'REQ-WC-006-CP',
-      products: [{ name: 'こいむぎ', code: 'KM-720' }],
+      products: [{ name: 'こいむぎ', code: 'KM74' }],
       categories: ['和酒'],
       businessTypes: ['業務用'],
       submissionDestination: '■■外食',
@@ -404,7 +418,7 @@ export function getDummyRequests(): RequestData[] {
     },
     {
       id: 'REQ-WC-009-CP',
-      products: [{ name: 'サンタ・リタ　スリー・メダルズ　メルロー', code: 'SR-ML-750' }],
+      products: [{ name: 'サンタ・リタ　スリー・メダルズ　メルロー', code: 'SR49' }],
       categories: ['輸入ワイン・洋酒'],
       businessTypes: ['家庭用'],
       submissionDestination: '◆◆商社',

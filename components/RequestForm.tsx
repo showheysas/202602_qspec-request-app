@@ -79,7 +79,6 @@ export function RequestForm() {
   // 各種証明書詳細フィールド
   const [certDestName, setCertDestName] = useState('');
   const [certType, setCertType] = useState('');
-  const [certItemName, setCertItemName] = useState('');
   const [certCopies, setCertCopies] = useState('');
   const [certSealRequired, setCertSealRequired] = useState('');
   const [certOriginalNeeded, setCertOriginalNeeded] = useState('');
@@ -175,7 +174,6 @@ export function RequestForm() {
       const certificateDetails = data.documentType === 'certificate' ? {
         destName: certDestName,
         certType: certType,
-        itemName: certItemName,
         copies: certCopies,
         sealRequired: certSealRequired,
         originalNeeded: certOriginalNeeded,
@@ -234,7 +232,7 @@ export function RequestForm() {
       setProducts([{ name: '', varietyCode: '', remarks: '' }]);
       setEbaseSpecLink(''); setEbaseDrawing(''); setEbaseFiles([]);
       setEbaseDesignNote(''); setEbaseTempImage(''); setEbasePackaging('');
-      setCertDestName(''); setCertType(''); setCertItemName('');
+      setCertDestName(''); setCertType('');
       setCertCopies(''); setCertSealRequired(''); setCertOriginalNeeded(''); setCertShipTo('');
     } catch (error) {
       toast({
@@ -263,7 +261,7 @@ export function RequestForm() {
     setProducts([{ name: '', varietyCode: '', remarks: '' }]);
     setEbaseSpecLink(''); setEbaseDrawing(''); setEbaseFiles([]);
     setEbaseDesignNote(''); setEbaseTempImage(''); setEbasePackaging('');
-    setCertDestName(''); setCertType(''); setCertItemName('');
+    setCertDestName(''); setCertType('');
     setCertCopies(''); setCertSealRequired(''); setCertOriginalNeeded(''); setCertShipTo('');
     setDialogType(null);
   };
@@ -615,12 +613,6 @@ export function RequestForm() {
                     <textarea value={certType} onChange={(e) => setCertType(e.target.value)} rows={2}
                       className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                       placeholder="例：原産地証明書、アレルゲン不使用証明書" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-foreground mb-1">対象アイテム名</label>
-                    <input type="text" value={certItemName} onChange={(e) => setCertItemName(e.target.value)}
-                      className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder="対象アイテム名を入力" />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>

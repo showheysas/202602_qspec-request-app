@@ -70,7 +70,6 @@ export interface EbaseDetails {
 export interface CertificateDetails {
   destName: string;
   certType: string;
-  itemName: string;
   copies: string;
   sealRequired: string;
   originalNeeded: string;

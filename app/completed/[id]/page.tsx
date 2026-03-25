@@ -188,10 +188,6 @@ export default function CompletedDetailPage({ params }: { params: Promise<{ id: 
                         <div className="text-foreground">{requestData.certificateDetails.certType || '－'}</div>
                       </div>
                       <div className="flex">
-                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">対象アイテム名:</div>
-                        <div className="text-foreground">{requestData.certificateDetails.itemName || '－'}</div>
-                      </div>
-                      <div className="flex">
                         <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">必要部数:</div>
                         <div className="text-foreground">{requestData.certificateDetails.copies || '－'}</div>
                       </div>

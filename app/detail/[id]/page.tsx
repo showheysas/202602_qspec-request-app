@@ -27,7 +27,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
   const { user } = useAuth();
 
   const [requestData, setRequestData] = useState<RequestData | null>(() => getRequestById(id));
-  const [dialogType, setDialogType] = useState<'status' | 'document' | 'comment' | 'createRequest' | null>(null);
+  const [dialogType, setDialogType] = useState<'status' | 'document' | 'comment' | 'createRequest' | 'completeReport' | null>(null);
   const [newStatus, setNewStatus] = useState<RequestStatus>(requestData?.status || RequestStatus.AWAITING_WINDOW);
   const [newDocumentName, setNewDocumentName] = useState('');
   const [newComment, setNewComment] = useState('');
@@ -51,7 +51,6 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
   const [certProducts, setCertProducts] = useState<{ name: string; varietyCode: string; remarks: string }[]>([{ name: '', varietyCode: '', remarks: '' }]);
   const [certDestName, setCertDestName] = useState('');
   const [certType, setCertType] = useState('');
-  const [certItemName, setCertItemName] = useState('');
   const [certCopies, setCertCopies] = useState('');
   const [certSealRequired, setCertSealRequired] = useState('');
   const [certOriginalNeeded, setCertOriginalNeeded] = useState('');
@@ -177,7 +176,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
     }
     // 各種証明書の全項目必須チェック
     if (selectedDocuments.includes('各種証明書')) {
-      if (!certDestName.trim() || !certType.trim() || !certItemName.trim() || !certCopies.trim() || !certSealRequired || !certOriginalNeeded) {
+      if (!certDestName.trim() || !certType.trim() || !certCopies.trim() || !certSealRequired || !certOriginalNeeded) {
         toast({ title: 'エラー', description: '各種証明書の全項目を入力してください', variant: 'destructive', duration: 3000 });
         return;
       }
@@ -196,6 +195,16 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
     setRequestData({ ...requestData });
     setDialogType(null);
     setSuccessMessage('作成依頼を送信しました。作成担当者にて対応が開始されます。');
+    setShowSuccessDialog(true);
+  };
+
+  const handleCompleteReport = () => {
+    if (!requestData) return;
+    updateRequestStatus(id, RequestStatus.COMPLETED);
+    requestData.status = RequestStatus.COMPLETED;
+    setRequestData({ ...requestData });
+    setDialogType(null);
+    setSuccessMessage(`完了報告を${requestData.requesterName}に発信しました。`);
     setShowSuccessDialog(true);
   };
 
@@ -409,10 +418,6 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                       <div className="text-foreground">{requestData.certificateDetails.certType || '－'}</div>
                     </div>
                     <div className="flex">
-                      <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">対象アイテム名:</div>
-                      <div className="text-foreground">{requestData.certificateDetails.itemName || '－'}</div>
-                    </div>
-                    <div className="flex">
                       <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">必要部数:</div>
                       <div className="text-foreground">{requestData.certificateDetails.copies || '－'}</div>
                     </div>
@@ -464,7 +469,6 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                       if (requestData.certificateDetails) {
                         setCertDestName(requestData.certificateDetails.destName || '');
                         setCertType(requestData.certificateDetails.certType || '');
-                        setCertItemName(requestData.certificateDetails.itemName || '');
                         setCertCopies(requestData.certificateDetails.copies || '');
                         setCertSealRequired(requestData.certificateDetails.sealRequired || '');
                         setCertOriginalNeeded(requestData.certificateDetails.originalNeeded || '');
@@ -477,6 +481,27 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                     }}
                   >
                     依頼情報を転記
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="text-xs h-7"
+                    onClick={() => {
+                      setSelectedDocuments([]);
+                      setCreatorDepartment('');
+                      setCreators([]);
+                      setEbaseProducts([{ name: '', varietyCode: '', remarks: '' }]);
+                      setEbaseSpecLink(''); setEbaseDrawing(''); setEbaseFiles([]);
+                      setEbaseDesignNote(''); setEbaseTempImage(''); setEbasePackaging('');
+                      setCertProducts([{ name: '', varietyCode: '', remarks: '' }]);
+                      setCertDestName(''); setCertType('');
+                      setCertCopies(''); setCertSealRequired(''); setCertOriginalNeeded(''); setCertShipTo('');
+                      setOtherDocumentComment('');
+                      toast({ title: 'クリア', description: '入力情報をクリアしました', duration: 2000 });
+                    }}
+                  >
+                    クリア
                   </Button>
                 </div>
                 <div className="space-y-2 p-3 bg-muted/30 rounded">
@@ -670,12 +695,6 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                         <textarea value={certType} onChange={(e) => setCertType(e.target.value)} rows={2}
                           className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                           placeholder="例：原産地証明書、アレルゲン不使用証明書" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-foreground mb-1">対象アイテム名 *</label>
-                        <input type="text" value={certItemName} onChange={(e) => setCertItemName(e.target.value)}
-                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                          placeholder="対象アイテム名を入力" />
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
@@ -871,12 +890,50 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
               </div>
             )}
 
+            {/* 完了＆依頼者に報告ボタン（作成中 && 編集権限あり） */}
+            {isInProgress && userCanEditDetail && (
+              <Button
+                onClick={() => setDialogType('completeReport')}
+                className="w-full bg-green-600 text-white hover:bg-green-700 h-10 text-sm font-semibold"
+              >
+                完了＆依頼者に報告
+              </Button>
+            )}
+
             {/* ステータス履歴（常時表示）← 左から移動 */}
             {statusHistorySection}
           </div>
         </div>
 
         {/* Dialogs */}
+        <AlertDialog open={dialogType === 'completeReport'} onOpenChange={(open) => !open && setDialogType(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>完了＆依頼者に報告</AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-2 text-sm">
+                  <p>以下の宛先に完了報告を発信します。</p>
+                  <div className="bg-muted/50 rounded p-3 space-y-1.5">
+                    <div className="flex">
+                      <span className="w-16 font-medium text-foreground">宛先：</span>
+                      <span className="text-foreground">{requestData?.requesterName}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="w-16 font-medium text-foreground">CC：</span>
+                      <span className="text-foreground">{requestData?.creators?.join('、') || '－'}</span>
+                    </div>
+                  </div>
+                  <p>発信しますか？</p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="flex gap-3">
+              <AlertDialogCancel>キャンセル</AlertDialogCancel>
+              <AlertDialogAction onClick={handleCompleteReport}>発信</AlertDialogAction>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
+
         <AlertDialog open={dialogType === 'createRequest'} onOpenChange={(open) => !open && setDialogType(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
