@@ -111,6 +111,8 @@ export interface RequestData {
   completedDocuments: CompletedDocument[];
   ebaseDetails?: EbaseDetails;
   certificateDetails?: CertificateDetails;
+  windowCreateMode?: 'asIs' | 'modified';
+  windowModificationNote?: string;
 }
 
 // Request form schema

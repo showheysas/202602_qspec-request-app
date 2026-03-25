@@ -182,6 +182,8 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
     requestData.documentsToCreate = selectedDocuments;
     requestData.creators = creatorResult.creators;
     requestData.creatorDepartment = creatorResult.creatorDepartment;
+    requestData.windowCreateMode = createMode;
+    requestData.windowModificationNote = createMode === 'modified' ? modificationNote : undefined;
     setRequestData({ ...requestData });
     setDialogType(null);
     setSuccessMessage('作成依頼を送信しました。作成担当者にて対応が開始されます。');
@@ -513,6 +515,31 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                         rows={3}
                         className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                       />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* 窓口担当者対応（作成中・完了：読み取り専用） */}
+            {!isAwaitingWindow && (requestData.windowCreateMode) && (
+              <div className="bg-card rounded-lg border border-border p-4">
+                <h2 className="text-lg font-semibold text-foreground mb-3">窓口担当者対応</h2>
+                <div className="space-y-2 bg-muted/50 rounded p-3 text-sm">
+                  <div className="flex">
+                    <div className="w-28 text-xs font-medium text-muted-foreground">作成文書:</div>
+                    <div className="text-foreground">{requestData.documentsToCreate?.join(', ') || '－'}</div>
+                  </div>
+                  <div className="flex">
+                    <div className="w-28 text-xs font-medium text-muted-foreground">作成方法:</div>
+                    <div className="text-foreground">
+                      {requestData.windowCreateMode === 'asIs' ? '依頼情報の内容で作成' : '依頼情報を変更・情報追加して作成'}
+                    </div>
+                  </div>
+                  {requestData.windowCreateMode === 'modified' && requestData.windowModificationNote && (
+                    <div className="flex">
+                      <div className="w-28 text-xs font-medium text-muted-foreground shrink-0">変更・追加:</div>
+                      <div className="text-foreground whitespace-pre-wrap">{requestData.windowModificationNote}</div>
                     </div>
                   )}
                 </div>

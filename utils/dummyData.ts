@@ -269,6 +269,8 @@ export function getDummyRequests(): RequestData[] {
     documentType: string;
     ebaseDetails?: EbaseDetails;
     certificateDetails?: CertificateDetails;
+    windowCreateMode?: 'asIs' | 'modified';
+    windowModificationNote?: string;
   }> = [
     {
       id: 'REQ-WC-001-IP',
@@ -278,6 +280,7 @@ export function getDummyRequests(): RequestData[] {
       submissionDestination: '〇〇商社',
       submissionDeadline: '2026-01-22',
       documentType: '商品規格書／商品カルテ',
+      windowCreateMode: 'asIs',
     },
     {
       id: 'REQ-WC-002-IP',
@@ -299,6 +302,8 @@ export function getDummyRequests(): RequestData[] {
         tempImage: '背面画像が仮、確定予定 2026/02/10',
         packaging: '',
       },
+      windowCreateMode: 'modified',
+      windowModificationNote: '500ml缶は今回対象外。350ml缶のみで作成してください。',
     },
     {
       id: 'REQ-WC-003-IP',
@@ -316,6 +321,7 @@ export function getDummyRequests(): RequestData[] {
         originalNeeded: 'あり',
         shipTo: '大阪支社 業務営業部 中村健一',
       },
+      windowCreateMode: 'asIs',
     },
   ];
 
@@ -388,6 +394,8 @@ export function getDummyRequests(): RequestData[] {
       completedDocuments: [],
       ebaseDetails: entry.ebaseDetails,
       certificateDetails: entry.certificateDetails,
+      windowCreateMode: entry.windowCreateMode,
+      windowModificationNote: entry.windowModificationNote,
     });
   });
 
@@ -406,6 +414,8 @@ export function getDummyRequests(): RequestData[] {
     documentType: string;
     ebaseDetails?: EbaseDetails;
     certificateDetails?: CertificateDetails;
+    windowCreateMode?: 'asIs' | 'modified';
+    windowModificationNote?: string;
   }> = [
     {
       id: 'REQ-WC-006-CP',
@@ -415,6 +425,7 @@ export function getDummyRequests(): RequestData[] {
       submissionDestination: '■■外食',
       submissionDeadline: '2026-01-26',
       documentType: '商品規格書／商品カルテ',
+      windowCreateMode: 'asIs',
     },
     {
       id: 'REQ-WC-009-CP',
@@ -433,6 +444,8 @@ export function getDummyRequests(): RequestData[] {
         tempImage: '',
         packaging: '',
       },
+      windowCreateMode: 'modified',
+      windowModificationNote: 'ラベル裏面の輸入者表記を最新の情報に更新してください。',
     },
   ];
 
@@ -527,6 +540,8 @@ export function getDummyRequests(): RequestData[] {
       ],
       ebaseDetails: entry.ebaseDetails,
       certificateDetails: entry.certificateDetails,
+      windowCreateMode: entry.windowCreateMode,
+      windowModificationNote: entry.windowModificationNote,
     });
   });
 

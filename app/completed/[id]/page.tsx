@@ -100,6 +100,31 @@ export default function CompletedDetailPage({ params }: { params: Promise<{ id: 
               </div>
             </div>
 
+            {/* 窓口担当者対応 */}
+            {requestData.windowCreateMode && (
+              <div className="bg-card rounded-lg border border-border p-4">
+                <h2 className="text-lg font-semibold text-foreground mb-3">窓口担当者対応</h2>
+                <div className="space-y-2 bg-muted/50 rounded p-3 text-sm">
+                  <div className="flex">
+                    <div className="w-28 text-xs font-medium text-muted-foreground">作成文書:</div>
+                    <div className="text-foreground">{requestData.documentsToCreate?.join(', ') || '－'}</div>
+                  </div>
+                  <div className="flex">
+                    <div className="w-28 text-xs font-medium text-muted-foreground">作成方法:</div>
+                    <div className="text-foreground">
+                      {requestData.windowCreateMode === 'asIs' ? '依頼情報の内容で作成' : '依頼情報を変更・情報追加して作成'}
+                    </div>
+                  </div>
+                  {requestData.windowCreateMode === 'modified' && requestData.windowModificationNote && (
+                    <div className="flex">
+                      <div className="w-28 text-xs font-medium text-muted-foreground shrink-0">変更・追加:</div>
+                      <div className="text-foreground whitespace-pre-wrap">{requestData.windowModificationNote}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* 窓口担当者・作成担当者 */}
             <div className="bg-card rounded-lg border border-border p-4">
               <h2 className="text-lg font-semibold text-foreground mb-3">担当者情報</h2>
