@@ -90,9 +90,7 @@ export interface RequestData {
   requestDepartment: string;
   requesterName: string;
   requesterEmail: string;
-  desiredDate?: string;
   products: ProductEntry[];
-  alcoholCategory?: string;
   documentType: string;
   submissionDestination: string;
   requestDetails: string;

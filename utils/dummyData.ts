@@ -84,14 +84,14 @@ export function getWindowContactRequests(): RequestData[] {
       documentType: '商品規格書／商品カルテ',
     },
     {
-      products: [{ name: 'サッポロクラシック', code: 'SC27' }],
+      products: [{ name: 'サッポロクラシック 350ml缶', code: 'SC27' }, { name: 'サッポロクラシック 500ml缶', code: 'SC28' }],
       categories: ['ビールテイスト'],
       businessTypes: ['家庭用'],
       submissionDestination: '北海道コープ',
       submissionDeadline: '2026-02-05',
       documentType: 'eBASE',
       ebaseDetails: {
-        productName: 'サッポロクラシック 350ml缶・500ml缶',
+        productName: '',
         specLink: 'https://internal.example.com/specs/classic-2026',
         drawing: 'GAZO-WEB「クラシック2026」フォルダに格納済み',
         fileNames: ['クラシック_展開図.pdf'],
@@ -206,7 +206,7 @@ export function getWindowContactRequests(): RequestData[] {
       requestDepartment: '営業企画部',
       requesterName: requester.name,
       requesterEmail: requester.email,
-      desiredDate: '2026-01-15',
+
       products: req.products,
       documentType: req.documentType,
       submissionDestination: req.submissionDestination,
@@ -277,14 +277,14 @@ export function getDummyRequests(): RequestData[] {
     },
     {
       id: 'REQ-WC-002-IP',
-      products: [{ name: 'サッポロクラシック', code: 'SC27' }],
+      products: [{ name: 'サッポロクラシック 350ml缶', code: 'SC27' }, { name: 'サッポロクラシック 500ml缶', code: 'SC28' }],
       categories: ['ビールテイスト'],
       businessTypes: ['家庭用'],
       submissionDestination: '北海道コープ',
       submissionDeadline: '2026-02-05',
       documentType: 'eBASE',
       ebaseDetails: {
-        productName: 'サッポロクラシック 350ml缶・500ml缶',
+        productName: '',
         specLink: 'https://internal.example.com/specs/classic-2026',
         drawing: 'GAZO-WEB「クラシック2026」フォルダに格納済み',
         fileNames: ['クラシック_展開図.pdf'],
@@ -340,7 +340,7 @@ export function getDummyRequests(): RequestData[] {
       requestDepartment: '営業企画部',
       requesterName: requester.name,
       requesterEmail: requester.email,
-      desiredDate: '2026-01-15',
+
       products: entry.products,
       documentType: entry.documentType,
       submissionDestination: entry.submissionDestination,
@@ -474,7 +474,7 @@ export function getDummyRequests(): RequestData[] {
       requestDepartment: '営業企画部',
       requesterName: requester.name,
       requesterEmail: requester.email,
-      desiredDate: '2026-01-15',
+
       products: entry.products,
       documentType: entry.documentType,
       submissionDestination: entry.submissionDestination,

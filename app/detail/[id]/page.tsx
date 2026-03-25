@@ -364,10 +364,6 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                         </div>
                       </div>
                     )}
-                    <div className="flex">
-                      <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">商品名（詳細）:</div>
-                      <div className="text-foreground">{requestData.ebaseDetails.productName || '－'}</div>
-                    </div>
                     {!isBusinessOnly && (
                       <>
                         <div className="flex">
