@@ -527,6 +527,7 @@ export function getDummyRequests(): RequestData[] {
           documentType: DocumentType.EBASE,
           registrationDate: new Date('2026-01-23'),
           filePath: '/documents/sample-ebase.pdf',
+          registeredBy: creatorName,
         },
       ],
       ebaseDetails: entry.ebaseDetails,
@@ -587,7 +588,8 @@ export function addComment(requestId: string, author: string, content: string): 
 export function addCompletedDocument(
   requestId: string,
   documentType: DocumentType,
-  filePath: string
+  filePath: string,
+  registeredBy?: string
 ): CompletedDocument | null {
   initializeStore();
   const request = requestsStore.get(requestId);
@@ -598,6 +600,7 @@ export function addCompletedDocument(
     documentType,
     registrationDate: new Date(),
     filePath,
+    registeredBy,
   };
 
   request.completedDocuments.push(newDocument);

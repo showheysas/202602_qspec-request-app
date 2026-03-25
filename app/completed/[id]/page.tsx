@@ -287,6 +287,9 @@ export default function CompletedDetailPage({ params }: { params: Promise<{ id: 
                           <p className="text-xs text-muted-foreground">
                             登録日: {new Date(doc.registrationDate).toISOString().split('T')[0]}
                           </p>
+                          {doc.registeredBy && (
+                            <p className="text-xs text-muted-foreground">登録者: {doc.registeredBy}</p>
+                          )}
                         </div>
                         <Button size="sm" variant="outline" className="text-xs">
                           ダウンロード

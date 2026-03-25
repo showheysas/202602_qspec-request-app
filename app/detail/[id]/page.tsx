@@ -124,7 +124,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
       toast({ title: 'エラー', description: 'ファイル名を入力してください', variant: 'destructive', duration: 3000 });
       return;
     }
-    const doc = addCompletedDocument(id, DocumentType.EBASE, newDocumentName);
+    const doc = addCompletedDocument(id, DocumentType.EBASE, newDocumentName, user?.name);
     if (doc) {
       const updated = getRequestById(id);
       if (updated) setRequestData(updated);
@@ -673,6 +673,9 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                         <p className="text-xs text-muted-foreground">
                           登録日: {new Date(doc.registrationDate).toISOString().split('T')[0]}
                         </p>
+                        {doc.registeredBy && (
+                          <p className="text-xs text-muted-foreground">登録者: {doc.registeredBy}</p>
+                        )}
                       </div>
                     ))}
                   </div>

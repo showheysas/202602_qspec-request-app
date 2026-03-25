@@ -44,6 +44,7 @@ export interface CompletedDocument {
   documentType: DocumentType;
   registrationDate: Date;
   filePath: string;
+  registeredBy?: string;
 }
 
 // Status history interface
