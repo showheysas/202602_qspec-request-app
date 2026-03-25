@@ -688,8 +688,8 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
               </div>
             )}
 
-            {/* 完了＆依頼者に報告ボタン（作成中 && 編集権限あり） */}
-            {isInProgress && userCanEditDetail && (
+            {/* 完了＆依頼者に報告ボタン（作成中 && 作成担当者orAdmin） */}
+            {isInProgress && (user?.role === 'creator' || user?.role === 'admin') && (
               <Button
                 onClick={() => setDialogType('completeReport')}
                 className="w-full bg-green-600 text-white hover:bg-green-700 h-10 text-sm font-semibold"
