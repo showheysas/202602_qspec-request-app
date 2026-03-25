@@ -36,6 +36,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
   const [creatorDepartment, setCreatorDepartment] = useState('');
   const [creators, setCreators] = useState<string[]>([]);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   // eBASE用フィールド
   const [ebaseProducts, setEbaseProducts] = useState<{ name: string; varietyCode: string; remarks: string }[]>([{ name: '', varietyCode: '', remarks: '' }]);
@@ -47,6 +48,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
   const [ebasePackaging, setEbasePackaging] = useState('');
 
   // 各種証明書用フィールド
+  const [certProducts, setCertProducts] = useState<{ name: string; varietyCode: string; remarks: string }[]>([{ name: '', varietyCode: '', remarks: '' }]);
   const [certDestName, setCertDestName] = useState('');
   const [certType, setCertType] = useState('');
   const [certItemName, setCertItemName] = useState('');
@@ -73,6 +75,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
   const isAwaitingWindow = requestData.status === RequestStatus.AWAITING_WINDOW;
   const isInProgress = requestData.status === RequestStatus.IN_PROGRESS;
   const userCanEditDetail = canEditDetail(user?.role ?? 'planner');
+  const isBusinessOnly = requestData.businessTypes?.length > 0 && requestData.businessTypes.every((t: string) => t === '業務用');
 
   const APP_TODAY = new Date('2026-01-22T00:00:00');
 
@@ -109,7 +112,8 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
     const updated = updateRequestStatus(id, newStatus);
     if (updated) {
       setRequestData(updated);
-      toast({ title: '成功', description: 'ステータスを更新しました', duration: 3000 });
+      setSuccessMessage('ステータスを更新しました。');
+      setShowSuccessDialog(true);
     }
     setDialogType(null);
   };
@@ -123,7 +127,8 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
     if (doc) {
       const updated = getRequestById(id);
       if (updated) setRequestData(updated);
-      toast({ title: '成功', description: '文書を登録しました', duration: 3000 });
+      setSuccessMessage('文書を登録しました。');
+      setShowSuccessDialog(true);
       setNewDocumentName('');
     }
     setDialogType(null);
@@ -138,7 +143,8 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
     if (comment) {
       const updated = getRequestById(id);
       if (updated) setRequestData(updated);
-      toast({ title: '成功', description: 'コメントを追加しました', duration: 3000 });
+      setSuccessMessage('コメントを送信しました。');
+      setShowSuccessDialog(true);
       setNewComment('');
     }
     setDialogType(null);
@@ -189,6 +195,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
     requestData.creatorDepartment = creatorResult.creatorDepartment;
     setRequestData({ ...requestData });
     setDialogType(null);
+    setSuccessMessage('作成依頼を送信しました。作成担当者にて対応が開始されます。');
     setShowSuccessDialog(true);
   };
 
@@ -338,12 +345,140 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                   <p className="text-foreground font-medium mt-1">{requestData.requestDetails}</p>
                 </div>
               </div>
+
+              {/* eBASE詳細情報（読み取り専用・依頼情報内） */}
+              {requestData.ebaseDetails && (
+                <div className="mt-3 border border-border rounded p-3 bg-muted/30">
+                  <p className="text-xs font-semibold text-foreground mb-2">eBASE 詳細情報</p>
+                  <div className="space-y-1.5 text-sm">
+                    <div className="flex">
+                      <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">商品名:</div>
+                      <div className="text-foreground">{requestData.ebaseDetails.productName || '－'}</div>
+                    </div>
+                    {!isBusinessOnly && (
+                      <>
+                        <div className="flex">
+                          <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">書状・規格書リンク:</div>
+                          <div className="text-foreground break-all">{requestData.ebaseDetails.specLink || '－'}</div>
+                        </div>
+                        <div className="flex">
+                          <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">展開図・立体図形:</div>
+                          <div className="text-foreground">{requestData.ebaseDetails.drawing || '－'}</div>
+                        </div>
+                        {requestData.ebaseDetails.fileNames?.length > 0 && (
+                          <div className="flex">
+                            <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">添付ファイル:</div>
+                            <div className="text-foreground">{requestData.ebaseDetails.fileNames.join(', ')}</div>
+                          </div>
+                        )}
+                        {requestData.ebaseDetails.designNote && (
+                          <div className="flex">
+                            <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">デザイン変更メモ:</div>
+                            <div className="text-foreground">{requestData.ebaseDetails.designNote}</div>
+                          </div>
+                        )}
+                        {requestData.ebaseDetails.tempImage && (
+                          <div className="flex">
+                            <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">仮画像情報:</div>
+                            <div className="text-foreground">{requestData.ebaseDetails.tempImage}</div>
+                          </div>
+                        )}
+                        {requestData.ebaseDetails.packaging && (
+                          <div className="flex">
+                            <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">包材単体重量:</div>
+                            <div className="text-foreground">{requestData.ebaseDetails.packaging}</div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 各種証明書詳細情報（読み取り専用・依頼情報内） */}
+              {requestData.certificateDetails && (
+                <div className="mt-3 border border-border rounded p-3 bg-muted/30">
+                  <p className="text-xs font-semibold text-foreground mb-2">各種証明書 詳細情報</p>
+                  <div className="space-y-1.5 text-sm">
+                    <div className="flex">
+                      <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">提出先正式名称:</div>
+                      <div className="text-foreground">{requestData.certificateDetails.destName || '－'}</div>
+                    </div>
+                    <div className="flex">
+                      <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">証明書の種類:</div>
+                      <div className="text-foreground">{requestData.certificateDetails.certType || '－'}</div>
+                    </div>
+                    <div className="flex">
+                      <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">対象アイテム名:</div>
+                      <div className="text-foreground">{requestData.certificateDetails.itemName || '－'}</div>
+                    </div>
+                    <div className="flex">
+                      <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">必要部数:</div>
+                      <div className="text-foreground">{requestData.certificateDetails.copies || '－'}</div>
+                    </div>
+                    <div className="flex">
+                      <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">捺印の要否:</div>
+                      <div className="text-foreground">{requestData.certificateDetails.sealRequired || '－'}</div>
+                    </div>
+                    <div className="flex">
+                      <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">原本常便送付:</div>
+                      <div className="text-foreground">{requestData.certificateDetails.originalNeeded || '－'}</div>
+                    </div>
+                    {requestData.certificateDetails.shipTo && (
+                      <div className="flex">
+                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">送り先:</div>
+                        <div className="text-foreground">{requestData.certificateDetails.shipTo}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* 作成文書（窓口待ち && 編集権限あり） */}
             {isAwaitingWindow && userCanEditDetail && (
               <div className="bg-card rounded-lg border border-border p-4">
-                <h2 className="text-lg font-semibold text-foreground mb-3">作成文書</h2>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-lg font-semibold text-foreground">作成文書</h2>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="text-xs h-7"
+                    onClick={() => {
+                      // 依頼情報からeBASE/証明書詳細を転記
+                      if (requestData.ebaseDetails) {
+                        const names = requestData.ebaseDetails.productName?.split('、').filter(Boolean) || [];
+                        if (names.length > 0) {
+                          setEbaseProducts(names.map((n) => ({ name: n, varietyCode: '', remarks: '' })));
+                        }
+                        setEbaseSpecLink(requestData.ebaseDetails.specLink || '');
+                        setEbaseDrawing(requestData.ebaseDetails.drawing || '');
+                        setEbaseDesignNote(requestData.ebaseDetails.designNote || '');
+                        setEbaseTempImage(requestData.ebaseDetails.tempImage || '');
+                        setEbasePackaging(requestData.ebaseDetails.packaging || '');
+                        if (!selectedDocuments.includes('eBASE')) {
+                          toggleDocument('eBASE');
+                        }
+                      }
+                      if (requestData.certificateDetails) {
+                        setCertDestName(requestData.certificateDetails.destName || '');
+                        setCertType(requestData.certificateDetails.certType || '');
+                        setCertItemName(requestData.certificateDetails.itemName || '');
+                        setCertCopies(requestData.certificateDetails.copies || '');
+                        setCertSealRequired(requestData.certificateDetails.sealRequired || '');
+                        setCertOriginalNeeded(requestData.certificateDetails.originalNeeded || '');
+                        setCertShipTo(requestData.certificateDetails.shipTo || '');
+                        if (!selectedDocuments.includes('各種証明書')) {
+                          toggleDocument('各種証明書');
+                        }
+                      }
+                      toast({ title: '転記完了', description: '依頼情報を転記しました', duration: 2000 });
+                    }}
+                  >
+                    依頼情報を転記
+                  </Button>
+                </div>
                 <div className="space-y-2 p-3 bg-muted/30 rounded">
                   <div>
                     <label className="block text-xs font-medium text-foreground mb-2">作成文書（複数選択可）</label>
@@ -420,60 +555,67 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                           </div>
                         ))}
                       </div>
-                      <div>
-                        <label className="block text-xs font-medium text-foreground mb-1">書状・商品規格書へのリンク（業務用は不要）</label>
-                        <input type="text" value={ebaseSpecLink} onChange={(e) => setEbaseSpecLink(e.target.value)}
-                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                          placeholder="URLを入力（ない場合は「なし」と記入）" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-foreground mb-1">展開図、立体図形</label>
-                        <p className="text-xs text-muted-foreground mb-1">以下から選択（業務用の場合は不要）</p>
-                        <select value={ebaseDrawing} onChange={(e) => setEbaseDrawing(e.target.value)}
-                          className="w-full px-2 py-1.5 border border-input rounded-md bg-white text-sm text-foreground">
-                          <option value="">選択してください</option>
-                          <option value="GAZO-WEB">GAZO-WEB</option>
-                          <option value="本社掲示板">本社掲示板</option>
-                          <option value="その他">その他（ファイル添付必須）</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-foreground mb-1">ファイル添付</label>
-                        <input type="file" multiple
-                          onChange={(e) => { if (e.target.files) setEbaseFiles((prev) => [...prev, ...Array.from(e.target.files!)]); }}
-                          className="w-full text-sm text-foreground file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer" />
-                        {ebaseFiles.length > 0 && (
-                          <div className="mt-1 space-y-0.5">
-                            {ebaseFiles.map((file, i) => (
-                              <div key={i} className="flex items-center justify-between bg-muted/30 rounded px-2 py-0.5">
-                                <span className="text-xs text-foreground truncate">{file.name}</span>
-                                <button type="button" onClick={() => setEbaseFiles((prev) => prev.filter((_, idx) => idx !== i))}
-                                  className="text-xs text-destructive hover:underline ml-2">削除</button>
-                              </div>
-                            ))}
+                      {/* 家庭用の場合のみ全項目表示、業務用は商品情報のみ */}
+                      {!isBusinessOnly && (
+                        <>
+                          <div>
+                            <label className="block text-xs font-medium text-foreground mb-1">書状・商品規格書へのリンク</label>
+                            <input type="text" value={ebaseSpecLink} onChange={(e) => setEbaseSpecLink(e.target.value)}
+                              className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                              placeholder="URLを入力（ない場合は「なし」と記入）" />
                           </div>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-foreground mb-1">通常デザインと異なる場合は記入</label>
-                        <p className="text-xs text-muted-foreground mb-1">「新」「NEW」が外れる、「キャンペーンスリーブ・カートン使用」など</p>
-                        <input type="text" value={ebaseDesignNote} onChange={(e) => setEbaseDesignNote(e.target.value)}
-                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                          placeholder="変更点を記入" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-foreground mb-1">仮画像の場合、どの画像が仮画像か、また、画像確定予定日を記入</label>
-                        <input type="text" value={ebaseTempImage} onChange={(e) => setEbaseTempImage(e.target.value)}
-                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                          placeholder="例：正面画像が仮、確定予定 2026/02/15" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-foreground mb-1">通常の包材以外の場合、包材の単体重量を記入</label>
-                        <p className="text-xs text-muted-foreground mb-1">ミカン箱型カートン、ギフトカートン、企画品の特殊カートン等</p>
-                        <input type="text" value={ebasePackaging} onChange={(e) => setEbasePackaging(e.target.value)}
-                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                          placeholder="包材名と重量を記入" />
-                      </div>
+                          <div>
+                            <label className="block text-xs font-medium text-foreground mb-1">展開図、立体図形</label>
+                            <select value={ebaseDrawing} onChange={(e) => setEbaseDrawing(e.target.value)}
+                              className="w-full px-2 py-1.5 border border-input rounded-md bg-white text-sm text-foreground">
+                              <option value="">選択してください</option>
+                              <option value="GAZO-WEB">GAZO-WEB</option>
+                              <option value="本社掲示板">本社掲示板</option>
+                              <option value="その他">その他（ファイル添付必須）</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-foreground mb-1">ファイル添付</label>
+                            <input type="file" multiple
+                              onChange={(e) => { if (e.target.files) setEbaseFiles((prev) => [...prev, ...Array.from(e.target.files!)]); }}
+                              className="w-full text-sm text-foreground file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer" />
+                            {ebaseFiles.length > 0 && (
+                              <div className="mt-1 space-y-0.5">
+                                {ebaseFiles.map((file, i) => (
+                                  <div key={i} className="flex items-center justify-between bg-muted/30 rounded px-2 py-0.5">
+                                    <span className="text-xs text-foreground truncate">{file.name}</span>
+                                    <button type="button" onClick={() => setEbaseFiles((prev) => prev.filter((_, idx) => idx !== i))}
+                                      className="text-xs text-destructive hover:underline ml-2">削除</button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-foreground mb-1">通常デザインと異なる場合は記入</label>
+                            <p className="text-xs text-muted-foreground mb-1">「新」「NEW」が外れる、「キャンペーンスリーブ・カートン使用」など</p>
+                            <input type="text" value={ebaseDesignNote} onChange={(e) => setEbaseDesignNote(e.target.value)}
+                              className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                              placeholder="変更点を記入" />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-foreground mb-1">仮画像の場合、どの画像が仮画像か、また、画像確定予定日を記入</label>
+                            <input type="text" value={ebaseTempImage} onChange={(e) => setEbaseTempImage(e.target.value)}
+                              className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                              placeholder="例：正面画像が仮、確定予定 2026/02/15" />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-foreground mb-1">通常の包材以外の場合、包材の単体重量を記入</label>
+                            <p className="text-xs text-muted-foreground mb-1">ミカン箱型カートン、ギフトカートン、企画品の特殊カートン等</p>
+                            <input type="text" value={ebasePackaging} onChange={(e) => setEbasePackaging(e.target.value)}
+                              className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                              placeholder="包材名と重量を記入" />
+                          </div>
+                        </>
+                      )}
+                      {isBusinessOnly && (
+                        <p className="text-xs text-muted-foreground">業務用のため、商品情報のみ入力してください。</p>
+                      )}
                     </div>
                   )}
 
@@ -481,6 +623,41 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                   {selectedDocuments.includes('各種証明書') && (
                     <div className="mt-3 space-y-2 border border-border rounded p-3 bg-background">
                       <p className="text-xs font-semibold text-foreground">各種証明書 詳細情報</p>
+                      {/* 商品情報入力 */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-xs font-medium text-foreground">商品情報</label>
+                          <button type="button"
+                            onClick={() => setCertProducts((prev) => [...prev, { name: '', varietyCode: '', remarks: '' }])}
+                            className="text-xs text-primary hover:underline font-medium">＋ 商品を追加</button>
+                        </div>
+                        {certProducts.map((product, index) => (
+                          <div key={index} className="flex gap-2 items-start mb-1">
+                            <div className="flex-1">
+                              <input type="text" value={product.name}
+                                onChange={(e) => setCertProducts((prev) => prev.map((p, i) => i === index ? { ...p, name: e.target.value } : p))}
+                                className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="商品名" />
+                            </div>
+                            <div className="flex-1">
+                              <input type="text" value={product.varietyCode}
+                                onChange={(e) => setCertProducts((prev) => prev.map((p, i) => i === index ? { ...p, varietyCode: e.target.value } : p))}
+                                className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="品種コード" />
+                            </div>
+                            <div className="flex-1">
+                              <input type="text" value={product.remarks}
+                                onChange={(e) => setCertProducts((prev) => prev.map((p, i) => i === index ? { ...p, remarks: e.target.value } : p))}
+                                className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="備考" />
+                            </div>
+                            {certProducts.length > 1 && (
+                              <button type="button" onClick={() => setCertProducts((prev) => prev.filter((_, i) => i !== index))}
+                                className="text-destructive hover:text-destructive/80 text-sm px-1 pt-1.5" title="削除">✕</button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                       <div>
                         <label className="block text-xs font-medium text-foreground mb-1">提出先の正式名称 *</label>
                         <input type="text" value={certDestName} onChange={(e) => setCertDestName(e.target.value)}
@@ -580,89 +757,6 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                   </div>
                 </div>
 
-                {/* eBASE詳細（読み取り専用） */}
-                {requestData.ebaseDetails && (
-                  <div className="mt-3 border border-border rounded p-3 bg-muted/30">
-                    <p className="text-xs font-semibold text-foreground mb-2">eBASE 詳細情報</p>
-                    <div className="space-y-1.5 text-sm">
-                      <div className="flex">
-                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">商品名:</div>
-                        <div className="text-foreground">{requestData.ebaseDetails.productName || '－'}</div>
-                      </div>
-                      <div className="flex">
-                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">書状・規格書リンク:</div>
-                        <div className="text-foreground break-all">{requestData.ebaseDetails.specLink || '－'}</div>
-                      </div>
-                      <div className="flex">
-                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">展開図・立体図形:</div>
-                        <div className="text-foreground">{requestData.ebaseDetails.drawing || '－'}</div>
-                      </div>
-                      {requestData.ebaseDetails.fileNames?.length > 0 && (
-                        <div className="flex">
-                          <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">添付ファイル:</div>
-                          <div className="text-foreground">{requestData.ebaseDetails.fileNames.join(', ')}</div>
-                        </div>
-                      )}
-                      {requestData.ebaseDetails.designNote && (
-                        <div className="flex">
-                          <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">デザイン変更メモ:</div>
-                          <div className="text-foreground">{requestData.ebaseDetails.designNote}</div>
-                        </div>
-                      )}
-                      {requestData.ebaseDetails.tempImage && (
-                        <div className="flex">
-                          <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">仮画像情報:</div>
-                          <div className="text-foreground">{requestData.ebaseDetails.tempImage}</div>
-                        </div>
-                      )}
-                      {requestData.ebaseDetails.packaging && (
-                        <div className="flex">
-                          <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">包材単体重量:</div>
-                          <div className="text-foreground">{requestData.ebaseDetails.packaging}</div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* 各種証明書詳細（読み取り専用） */}
-                {requestData.certificateDetails && (
-                  <div className="mt-3 border border-border rounded p-3 bg-muted/30">
-                    <p className="text-xs font-semibold text-foreground mb-2">各種証明書 詳細情報</p>
-                    <div className="space-y-1.5 text-sm">
-                      <div className="flex">
-                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">提出先正式名称:</div>
-                        <div className="text-foreground">{requestData.certificateDetails.destName || '－'}</div>
-                      </div>
-                      <div className="flex">
-                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">証明書の種類:</div>
-                        <div className="text-foreground">{requestData.certificateDetails.certType || '－'}</div>
-                      </div>
-                      <div className="flex">
-                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">対象アイテム名:</div>
-                        <div className="text-foreground">{requestData.certificateDetails.itemName || '－'}</div>
-                      </div>
-                      <div className="flex">
-                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">必要部数:</div>
-                        <div className="text-foreground">{requestData.certificateDetails.copies || '－'}</div>
-                      </div>
-                      <div className="flex">
-                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">捺印の要否:</div>
-                        <div className="text-foreground">{requestData.certificateDetails.sealRequired || '－'}</div>
-                      </div>
-                      <div className="flex">
-                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">原本常便送付:</div>
-                        <div className="text-foreground">{requestData.certificateDetails.originalNeeded || '－'}</div>
-                      </div>
-                      {requestData.certificateDetails.shipTo && (
-                        <div className="flex">
-                          <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">送り先:</div>
-                          <div className="text-foreground">{requestData.certificateDetails.shipTo}</div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
@@ -802,7 +896,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>送信完了</AlertDialogTitle>
-              <AlertDialogDescription>作成依頼を送信しました。作成担当者にて対応が開始されます。</AlertDialogDescription>
+              <AlertDialogDescription>{successMessage}</AlertDialogDescription>
             </AlertDialogHeader>
             <div className="flex gap-3 justify-end">
               <AlertDialogAction onClick={() => setShowSuccessDialog(false)}>OK</AlertDialogAction>

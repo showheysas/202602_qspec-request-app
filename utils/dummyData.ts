@@ -65,7 +65,16 @@ function createInProgressComments(
 export function getWindowContactRequests(): RequestData[] {
   const requests: RequestData[] = [];
 
-  const windowContactRequests = [
+  const windowContactRequests: Array<{
+    products: ProductEntry[];
+    categories: string[];
+    businessTypes: string[];
+    submissionDestination: string;
+    submissionDeadline: string;
+    documentType: string;
+    ebaseDetails?: EbaseDetails;
+    certificateDetails?: CertificateDetails;
+  }> = [
     {
       products: [{ name: '黒ラベル350ml', code: 'BL-350' }],
       categories: ['ビールテイスト'],
@@ -83,12 +92,21 @@ export function getWindowContactRequests(): RequestData[] {
       documentType: '商品規格書／商品カルテ',
     },
     {
-      products: [],
+      products: [{ name: 'サッポロ生ビール黒ラベル 樽20L', code: 'BL-D20' }],
       categories: ['ビールテイスト'],
       businessTypes: ['業務用'],
       submissionDestination: '□□外食',
       submissionDeadline: '2026-01-28',
       documentType: '各種証明書',
+      certificateDetails: {
+        destName: '株式会社□□外食サービス',
+        certType: 'アレルゲン不使用証明書（特定原材料7品目）',
+        itemName: 'サッポロ生ビール黒ラベル 樽20L',
+        copies: '2部',
+        sealRequired: '要',
+        originalNeeded: 'あり',
+        shipTo: '大阪支社 業務営業部 中村健一',
+      },
     },
     {
       products: [{ name: '男梅サワー', code: 'UMS-500' }],
@@ -115,12 +133,21 @@ export function getWindowContactRequests(): RequestData[] {
       documentType: '商品規格書／商品カルテ',
     },
     {
-      products: [],
+      products: [{ name: 'バカルディ スペリオール', code: 'BC-SUP-750' }],
       categories: ['バカルディ社製品'],
       businessTypes: ['家庭用'],
       submissionDestination: '▲▲商社',
       submissionDeadline: '2026-01-21',
       documentType: '各種証明書',
+      certificateDetails: {
+        destName: '株式会社▲▲商社',
+        certType: '原産地証明書',
+        itemName: 'バカルディ スペリオール 750ml',
+        copies: '1部',
+        sealRequired: '否',
+        originalNeeded: 'なし',
+        shipTo: '',
+      },
     },
     {
       products: [{ name: 'デュワーズホワイトラベル', code: 'DWL-700' }],
@@ -137,6 +164,15 @@ export function getWindowContactRequests(): RequestData[] {
       submissionDestination: '◆◆商社',
       submissionDeadline: '2026-01-24',
       documentType: 'eBASE',
+      ebaseDetails: {
+        productName: 'サンタ・リタ スリー・メダルズ メルロー 750ml',
+        specLink: 'https://internal.example.com/specs/santa-rita-merlot',
+        drawing: '本社掲示板「輸入ワイン2026」フォルダに格納済み',
+        fileNames: ['サンタリタ_メルロー_ラベル展開図.pdf'],
+        designNote: '',
+        tempImage: '',
+        packaging: '',
+      },
     },
     {
       products: [{ name: 'グランポレール　余市ケルナー２０２５', code: 'GP-YK-750' }],
@@ -190,6 +226,8 @@ export function getWindowContactRequests(): RequestData[] {
       ],
       comments: [],
       completedDocuments: [],
+      ebaseDetails: req.ebaseDetails,
+      certificateDetails: req.certificateDetails,
     });
   });
 

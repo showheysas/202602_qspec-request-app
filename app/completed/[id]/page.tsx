@@ -123,49 +123,56 @@ export default function CompletedDetailPage({ params }: { params: Promise<{ id: 
               </div>
 
                 {/* eBASE 詳細情報（読み取り専用） */}
-                {requestData.ebaseDetails && (
-                  <div className="mt-3 border border-border rounded p-3 bg-muted/30">
-                    <p className="text-xs font-semibold text-foreground mb-2">eBASE 詳細情報</p>
-                    <div className="space-y-1.5 text-sm">
-                      <div className="flex">
-                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">商品名:</div>
-                        <div className="text-foreground">{requestData.ebaseDetails.productName || '－'}</div>
+                {requestData.ebaseDetails && (() => {
+                  const isBizOnly = requestData.businessTypes?.length > 0 && requestData.businessTypes.every((t: string) => t === '業務用');
+                  return (
+                    <div className="mt-3 border border-border rounded p-3 bg-muted/30">
+                      <p className="text-xs font-semibold text-foreground mb-2">eBASE 詳細情報</p>
+                      <div className="space-y-1.5 text-sm">
+                        <div className="flex">
+                          <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">商品名:</div>
+                          <div className="text-foreground">{requestData.ebaseDetails.productName || '－'}</div>
+                        </div>
+                        {!isBizOnly && (
+                          <>
+                            <div className="flex">
+                              <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">書状・規格書リンク:</div>
+                              <div className="text-foreground break-all">{requestData.ebaseDetails.specLink || '－'}</div>
+                            </div>
+                            <div className="flex">
+                              <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">展開図・立体図形:</div>
+                              <div className="text-foreground">{requestData.ebaseDetails.drawing || '－'}</div>
+                            </div>
+                            {requestData.ebaseDetails.fileNames?.length > 0 && (
+                              <div className="flex">
+                                <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">添付ファイル:</div>
+                                <div className="text-foreground">{requestData.ebaseDetails.fileNames.join(', ')}</div>
+                              </div>
+                            )}
+                            {requestData.ebaseDetails.designNote && (
+                              <div className="flex">
+                                <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">デザイン変更メモ:</div>
+                                <div className="text-foreground">{requestData.ebaseDetails.designNote}</div>
+                              </div>
+                            )}
+                            {requestData.ebaseDetails.tempImage && (
+                              <div className="flex">
+                                <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">仮画像情報:</div>
+                                <div className="text-foreground">{requestData.ebaseDetails.tempImage}</div>
+                              </div>
+                            )}
+                            {requestData.ebaseDetails.packaging && (
+                              <div className="flex">
+                                <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">包材単体重量:</div>
+                                <div className="text-foreground">{requestData.ebaseDetails.packaging}</div>
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
-                      <div className="flex">
-                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">書状・規格書リンク:</div>
-                        <div className="text-foreground break-all">{requestData.ebaseDetails.specLink || '－'}</div>
-                      </div>
-                      <div className="flex">
-                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">展開図・立体図形:</div>
-                        <div className="text-foreground">{requestData.ebaseDetails.drawing || '－'}</div>
-                      </div>
-                      {requestData.ebaseDetails.fileNames?.length > 0 && (
-                        <div className="flex">
-                          <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">添付ファイル:</div>
-                          <div className="text-foreground">{requestData.ebaseDetails.fileNames.join(', ')}</div>
-                        </div>
-                      )}
-                      {requestData.ebaseDetails.designNote && (
-                        <div className="flex">
-                          <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">デザイン変更メモ:</div>
-                          <div className="text-foreground">{requestData.ebaseDetails.designNote}</div>
-                        </div>
-                      )}
-                      {requestData.ebaseDetails.tempImage && (
-                        <div className="flex">
-                          <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">仮画像情報:</div>
-                          <div className="text-foreground">{requestData.ebaseDetails.tempImage}</div>
-                        </div>
-                      )}
-                      {requestData.ebaseDetails.packaging && (
-                        <div className="flex">
-                          <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">包材単体重量:</div>
-                          <div className="text-foreground">{requestData.ebaseDetails.packaging}</div>
-                        </div>
-                      )}
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* 各種証明書 詳細情報（読み取り専用） */}
                 {requestData.certificateDetails && (

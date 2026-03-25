@@ -14,7 +14,7 @@ export const DUMMY_USERS: Record<UserRole, AuthUser> = {
 };
 
 export const ROLE_LABELS: Record<UserRole, string> = {
-  planner: '企画者',
+  planner: '依頼者',
   window: '窓口担当者',
   creator: '作成担当者',
   admin: '管理者',
@@ -54,7 +54,7 @@ export function canEditDetail(role: UserRole): boolean {
   return role === 'window' || role === 'creator' || role === 'admin';
 }
 
-/** 企画者以外は全ステータスを見られる（企画者は窓口待ちのみ） */
+/** 依頼者以外は全ステータスを見られる（依頼者は窓口待ちのみ） */
 export function canSeeAllStatuses(role: UserRole): boolean {
   return role === 'window' || role === 'creator' || role === 'admin';
 }

@@ -52,6 +52,7 @@ export function RequestForm() {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dialogType, setDialogType] = useState<'submit' | 'clear' | null>(null);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [businessTypes, setBusinessTypes] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -66,6 +67,23 @@ export function RequestForm() {
     creatorDepartment: string;
     creators: string[];
   } | null>(null);
+
+  // eBASE詳細フィールド
+  const [ebaseSpecLink, setEbaseSpecLink] = useState('');
+  const [ebaseDrawing, setEbaseDrawing] = useState('');
+  const [ebaseFiles, setEbaseFiles] = useState<File[]>([]);
+  const [ebaseDesignNote, setEbaseDesignNote] = useState('');
+  const [ebaseTempImage, setEbaseTempImage] = useState('');
+  const [ebasePackaging, setEbasePackaging] = useState('');
+
+  // 各種証明書詳細フィールド
+  const [certDestName, setCertDestName] = useState('');
+  const [certType, setCertType] = useState('');
+  const [certItemName, setCertItemName] = useState('');
+  const [certCopies, setCertCopies] = useState('');
+  const [certSealRequired, setCertSealRequired] = useState('');
+  const [certOriginalNeeded, setCertOriginalNeeded] = useState('');
+  const [certShipTo, setCertShipTo] = useState('');
 
   const {
     register,
@@ -86,8 +104,12 @@ export function RequestForm() {
   const deadline = watch('submissionDeadline');
   const documentType = watch('documentType');
 
-  // 商品規格書／商品カルテ or eBASE の場合のみ商品入力を表示
-  const showProductFields = documentType === 'specification' || documentType === 'ebase';
+  // 商品規格書／商品カルテ, eBASE, 各種証明書 の場合は商品入力を表示
+  const showProductFields = documentType === 'specification' || documentType === 'ebase' || documentType === 'certificate';
+  const isEbase = documentType === 'ebase';
+  const isCertificate = documentType === 'certificate';
+  const isHouseholdOnly = businessTypes.length > 0 && businessTypes.every((t) => t === '家庭用');
+  const isBusinessOnly = businessTypes.length > 0 && businessTypes.every((t) => t === '業務用');
 
   useEffect(() => {
     setMounted(true);
@@ -138,6 +160,28 @@ export function RequestForm() {
 
       // 新規依頼をストアに追加
       const newId = `REQ-${Date.now()}`;
+      // eBASE詳細情報
+      const ebaseDetails = data.documentType === 'ebase' ? {
+        productName: productEntries.map((p) => p.name).join('、'),
+        specLink: ebaseSpecLink,
+        drawing: ebaseDrawing,
+        fileNames: ebaseFiles.map((f) => f.name),
+        designNote: ebaseDesignNote,
+        tempImage: ebaseTempImage,
+        packaging: ebasePackaging,
+      } : undefined;
+
+      // 各種証明書詳細情報
+      const certificateDetails = data.documentType === 'certificate' ? {
+        destName: certDestName,
+        certType: certType,
+        itemName: certItemName,
+        copies: certCopies,
+        sealRequired: certSealRequired,
+        originalNeeded: certOriginalNeeded,
+        shipTo: certShipTo,
+      } : undefined;
+
       const newRequest: RequestData = {
         id: newId,
         requestId: newId,
@@ -171,14 +215,12 @@ export function RequestForm() {
         }],
         comments: [],
         completedDocuments: [],
+        ebaseDetails,
+        certificateDetails,
       };
       addRequest(newRequest);
 
-      toast({
-        title: '成功',
-        description: '依頼を提出しました',
-        duration: 3000,
-      });
+      setShowSuccessDialog(true);
       reset({
         requesterName: user?.name ?? '',
         requesterEmail: user?.email ?? '',
@@ -190,6 +232,10 @@ export function RequestForm() {
       setDirectToQA(false);
       setAttachedFiles([]);
       setProducts([{ name: '', varietyCode: '', remarks: '' }]);
+      setEbaseSpecLink(''); setEbaseDrawing(''); setEbaseFiles([]);
+      setEbaseDesignNote(''); setEbaseTempImage(''); setEbasePackaging('');
+      setCertDestName(''); setCertType(''); setCertItemName('');
+      setCertCopies(''); setCertSealRequired(''); setCertOriginalNeeded(''); setCertShipTo('');
     } catch (error) {
       toast({
         title: 'エラー',
@@ -215,6 +261,10 @@ export function RequestForm() {
     setDirectToQA(false);
     setAttachedFiles([]);
     setProducts([{ name: '', varietyCode: '', remarks: '' }]);
+    setEbaseSpecLink(''); setEbaseDrawing(''); setEbaseFiles([]);
+    setEbaseDesignNote(''); setEbaseTempImage(''); setEbasePackaging('');
+    setCertDestName(''); setCertType(''); setCertItemName('');
+    setCertCopies(''); setCertSealRequired(''); setCertOriginalNeeded(''); setCertShipTo('');
     setDialogType(null);
   };
 
@@ -478,6 +528,137 @@ export function RequestForm() {
                 </div>
               )}
 
+              {/* eBASE詳細情報（eBASE選択時のみ） */}
+              {isEbase && (
+                <div className="border border-border rounded p-3 space-y-2 bg-muted/20">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold text-foreground">eBASE 詳細情報</p>
+                    <p className="text-xs text-muted-foreground">※不明な項目は空欄で構いません</p>
+                  </div>
+                  {/* 家庭用の場合のみ全項目表示、業務用は商品情報のみ */}
+                  {!isBusinessOnly && (
+                    <>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">書状・商品規格書へのリンク</label>
+                        <input type="text" value={ebaseSpecLink} onChange={(e) => setEbaseSpecLink(e.target.value)}
+                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          placeholder="URLを入力（ない場合は「なし」と記入）" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">展開図、立体図形</label>
+                        <select value={ebaseDrawing} onChange={(e) => setEbaseDrawing(e.target.value)}
+                          className="w-full px-2 py-1.5 border border-input rounded-md bg-white text-sm text-foreground">
+                          <option value="">選択してください</option>
+                          <option value="GAZO-WEB">GAZO-WEB</option>
+                          <option value="本社掲示板">本社掲示板</option>
+                          <option value="その他">その他（ファイル添付必須）</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">ファイル添付</label>
+                        <input type="file" multiple
+                          onChange={(e) => { if (e.target.files) setEbaseFiles((prev) => [...prev, ...Array.from(e.target.files!)]); }}
+                          className="w-full text-sm text-foreground file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer" />
+                        {ebaseFiles.length > 0 && (
+                          <div className="mt-1 space-y-0.5">
+                            {ebaseFiles.map((file, i) => (
+                              <div key={i} className="flex items-center justify-between bg-muted/30 rounded px-2 py-0.5">
+                                <span className="text-xs text-foreground truncate">{file.name}</span>
+                                <button type="button" onClick={() => setEbaseFiles((prev) => prev.filter((_, idx) => idx !== i))}
+                                  className="text-xs text-destructive hover:underline ml-2">削除</button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">通常デザインと異なる場合は記入</label>
+                        <input type="text" value={ebaseDesignNote} onChange={(e) => setEbaseDesignNote(e.target.value)}
+                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          placeholder="「新」「NEW」が外れる、キャンペーンスリーブ使用など" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">仮画像の場合、どの画像が仮か＋確定予定日</label>
+                        <input type="text" value={ebaseTempImage} onChange={(e) => setEbaseTempImage(e.target.value)}
+                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          placeholder="例：正面画像が仮、確定予定 2026/02/15" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">通常の包材以外の場合、包材の単体重量を記入</label>
+                        <input type="text" value={ebasePackaging} onChange={(e) => setEbasePackaging(e.target.value)}
+                          className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          placeholder="包材名と重量を記入" />
+                      </div>
+                    </>
+                  )}
+                  {isBusinessOnly && (
+                    <p className="text-xs text-muted-foreground">業務用のため、商品情報のみ入力してください。</p>
+                  )}
+                </div>
+              )}
+
+              {/* 各種証明書詳細情報（各種証明書選択時のみ） */}
+              {isCertificate && (
+                <div className="border border-border rounded p-3 space-y-2 bg-muted/20">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold text-foreground">各種証明書 詳細情報</p>
+                    <p className="text-xs text-muted-foreground">※不明な項目は空欄で構いません</p>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-foreground mb-1">提出先の正式名称</label>
+                    <input type="text" value={certDestName} onChange={(e) => setCertDestName(e.target.value)}
+                      className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      placeholder="正式名称を入力" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-foreground mb-1">証明書の種類</label>
+                    <textarea value={certType} onChange={(e) => setCertType(e.target.value)} rows={2}
+                      className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      placeholder="例：原産地証明書、アレルゲン不使用証明書" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-foreground mb-1">対象アイテム名</label>
+                    <input type="text" value={certItemName} onChange={(e) => setCertItemName(e.target.value)}
+                      className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      placeholder="対象アイテム名を入力" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs font-medium text-foreground mb-1">必要部数</label>
+                      <input type="text" value={certCopies} onChange={(e) => setCertCopies(e.target.value)}
+                        className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder="例：2部" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-foreground mb-1">捺印の要否</label>
+                      <select value={certSealRequired} onChange={(e) => setCertSealRequired(e.target.value)}
+                        className="w-full px-2 py-1.5 border border-input rounded-md bg-white text-sm text-foreground">
+                        <option value="">選択してください</option>
+                        <option value="要">要</option>
+                        <option value="否">否</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-foreground mb-1">証明書原本を常便で送る必要性</label>
+                    <select value={certOriginalNeeded} onChange={(e) => setCertOriginalNeeded(e.target.value)}
+                      className="w-full px-2 py-1.5 border border-input rounded-md bg-white text-sm text-foreground">
+                      <option value="">選択してください</option>
+                      <option value="あり">あり</option>
+                      <option value="なし">なし</option>
+                    </select>
+                  </div>
+                  {certOriginalNeeded === 'あり' && (
+                    <div>
+                      <label className="block text-xs font-medium text-foreground mb-1">常便送り先の拠点・部署・名前</label>
+                      <input type="text" value={certShipTo} onChange={(e) => setCertShipTo(e.target.value)}
+                        className="w-full rounded-md border border-border bg-input px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder="例：東京本社 営業企画部 山田太郎" />
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-medium text-foreground mb-1">
                   作成完了希望日 *
@@ -645,6 +826,18 @@ export function RequestForm() {
               <AlertDialogAction onClick={handleClear}>
                 クリア
               </AlertDialogAction>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={showSuccessDialog} onOpenChange={(open) => !open && setShowSuccessDialog(false)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>送信完了</AlertDialogTitle>
+              <AlertDialogDescription>依頼を送信しました。</AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="flex gap-3 justify-end">
+              <AlertDialogAction onClick={() => setShowSuccessDialog(false)}>OK</AlertDialogAction>
             </div>
           </AlertDialogContent>
         </AlertDialog>
