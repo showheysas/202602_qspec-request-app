@@ -35,6 +35,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
   const [otherDocumentComment, setOtherDocumentComment] = useState('');
   const [createMode, setCreateMode] = useState<'asIs' | 'modified'>('asIs');
   const [modificationNote, setModificationNote] = useState('');
+  const [windowFiles, setWindowFiles] = useState<File[]>([]);
   const [creatorDepartment, setCreatorDepartment] = useState('');
   const [creators, setCreators] = useState<string[]>([]);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
@@ -184,6 +185,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
     requestData.creatorDepartment = creatorResult.creatorDepartment;
     requestData.windowCreateMode = createMode;
     requestData.windowModificationNote = createMode === 'modified' ? modificationNote : undefined;
+    requestData.windowFileNames = windowFiles.length > 0 ? windowFiles.map((f) => f.name) : undefined;
     setRequestData({ ...requestData });
     setDialogType(null);
     setSuccessMessage('作成依頼を送信しました。作成担当者にて対応が開始されます。');
@@ -513,6 +515,28 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                       />
                     </div>
                   )}
+
+                  {/* ファイル添付 */}
+                  <div>
+                    <label className="block text-xs font-medium text-foreground mb-1">ファイル添付</label>
+                    <input
+                      type="file"
+                      multiple
+                      onChange={(e) => { if (e.target.files) setWindowFiles((prev) => [...prev, ...Array.from(e.target.files!)]); }}
+                      className="w-full text-sm text-foreground file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+                    />
+                    {windowFiles.length > 0 && (
+                      <div className="mt-1 space-y-0.5">
+                        {windowFiles.map((file, i) => (
+                          <div key={i} className="flex items-center justify-between bg-muted/30 rounded px-2 py-0.5">
+                            <span className="text-xs text-foreground truncate">{file.name}</span>
+                            <button type="button" onClick={() => setWindowFiles((prev) => prev.filter((_, idx) => idx !== i))}
+                              className="text-xs text-destructive hover:underline ml-2">削除</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -536,6 +560,12 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                     <div className="flex">
                       <div className="w-28 text-xs font-medium text-muted-foreground shrink-0">変更・追加:</div>
                       <div className="text-foreground whitespace-pre-wrap">{requestData.windowModificationNote}</div>
+                    </div>
+                  )}
+                  {requestData.windowFileNames && requestData.windowFileNames.length > 0 && (
+                    <div className="flex">
+                      <div className="w-28 text-xs font-medium text-muted-foreground shrink-0">添付ファイル:</div>
+                      <div className="text-foreground">{requestData.windowFileNames.join(', ')}</div>
                     </div>
                   )}
                 </div>

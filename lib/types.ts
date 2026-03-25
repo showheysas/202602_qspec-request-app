@@ -112,6 +112,7 @@ export interface RequestData {
   certificateDetails?: CertificateDetails;
   windowCreateMode?: 'asIs' | 'modified';
   windowModificationNote?: string;
+  windowFileNames?: string[];
 }
 
 // Request form schema

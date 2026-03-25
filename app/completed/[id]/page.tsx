@@ -123,6 +123,12 @@ export default function CompletedDetailPage({ params }: { params: Promise<{ id: 
                       <div className="text-foreground whitespace-pre-wrap">{requestData.windowModificationNote}</div>
                     </div>
                   )}
+                  {requestData.windowFileNames && requestData.windowFileNames.length > 0 && (
+                    <div className="flex">
+                      <div className="w-28 text-xs font-medium text-muted-foreground shrink-0">添付ファイル:</div>
+                      <div className="text-foreground">{requestData.windowFileNames.join(', ')}</div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

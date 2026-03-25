@@ -264,6 +264,7 @@ export function getDummyRequests(): RequestData[] {
     certificateDetails?: CertificateDetails;
     windowCreateMode?: 'asIs' | 'modified';
     windowModificationNote?: string;
+    windowFileNames?: string[];
   }> = [
     {
       id: 'REQ-WC-001-IP',
@@ -294,6 +295,7 @@ export function getDummyRequests(): RequestData[] {
       },
       windowCreateMode: 'modified',
       windowModificationNote: '500ml缶は今回対象外。350ml缶のみで作成してください。',
+      windowFileNames: ['クラシック_補足資料.pdf'],
     },
     {
       id: 'REQ-WC-003-IP',
@@ -387,6 +389,7 @@ export function getDummyRequests(): RequestData[] {
       certificateDetails: entry.certificateDetails,
       windowCreateMode: entry.windowCreateMode,
       windowModificationNote: entry.windowModificationNote,
+      windowFileNames: entry.windowFileNames,
     });
   });
 
@@ -407,6 +410,7 @@ export function getDummyRequests(): RequestData[] {
     certificateDetails?: CertificateDetails;
     windowCreateMode?: 'asIs' | 'modified';
     windowModificationNote?: string;
+    windowFileNames?: string[];
   }> = [
     {
       id: 'REQ-WC-006-CP',
@@ -437,6 +441,7 @@ export function getDummyRequests(): RequestData[] {
       },
       windowCreateMode: 'modified',
       windowModificationNote: 'ラベル裏面の輸入者表記を最新の情報に更新してください。',
+      windowFileNames: ['輸入者表記_変更指示書.pdf'],
     },
   ];
 
@@ -534,6 +539,7 @@ export function getDummyRequests(): RequestData[] {
       certificateDetails: entry.certificateDetails,
       windowCreateMode: entry.windowCreateMode,
       windowModificationNote: entry.windowModificationNote,
+      windowFileNames: entry.windowFileNames,
     });
   });
 
