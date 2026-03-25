@@ -473,6 +473,18 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                     size="sm"
                     className="text-xs h-7"
                     onClick={() => {
+                      // 文書種別に応じたチェックボックスを自動選択
+                      const docType = requestData.documentType;
+                      const docMap: Record<string, string> = {
+                        '商品規格書／商品カルテ': '商品規格書／商品カルテ',
+                        'eBASE': 'eBASE',
+                        '各種証明書': '各種証明書',
+                        'その他': 'その他',
+                      };
+                      const target = docMap[docType];
+                      if (target && !selectedDocuments.includes(target)) {
+                        toggleDocument(target);
+                      }
                       // 依頼情報からeBASE/証明書詳細を転記
                       if (requestData.ebaseDetails) {
                         const names = requestData.ebaseDetails.productName?.split('、').filter(Boolean) || [];
@@ -484,9 +496,6 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                         setEbaseDesignNote(requestData.ebaseDetails.designNote || '');
                         setEbaseTempImage(requestData.ebaseDetails.tempImage || '');
                         setEbasePackaging(requestData.ebaseDetails.packaging || '');
-                        if (!selectedDocuments.includes('eBASE')) {
-                          toggleDocument('eBASE');
-                        }
                       }
                       if (requestData.certificateDetails) {
                         setCertDestName(requestData.certificateDetails.destName || '');
@@ -495,9 +504,6 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                         setCertSealRequired(requestData.certificateDetails.sealRequired || '');
                         setCertOriginalNeeded(requestData.certificateDetails.originalNeeded || '');
                         setCertShipTo(requestData.certificateDetails.shipTo || '');
-                        if (!selectedDocuments.includes('各種証明書')) {
-                          toggleDocument('各種証明書');
-                        }
                       }
                       toast({ title: '転記完了', description: '依頼情報を転記しました', duration: 2000 });
                     }}
