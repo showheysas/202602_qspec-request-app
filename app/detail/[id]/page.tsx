@@ -313,16 +313,6 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                   <p className="text-xs text-muted-foreground">文書種別</p>
                   <p className="text-foreground font-medium">{requestData.documentType}</p>
                 </div>
-                {requestData.products?.length > 0 && (
-                  <div className="col-span-2">
-                    <p className="text-xs text-muted-foreground">商品</p>
-                    <div className="text-foreground font-medium">
-                      {requestData.products.map((p, i) => (
-                        <p key={i}>{p.name}{p.code ? `（${p.code}）` : ''}</p>
-                      ))}
-                    </div>
-                  </div>
-                )}
                 <div>
                   <p className="text-xs text-muted-foreground">事業分類</p>
                   <p className="text-foreground font-medium">{requestData.businessTypes?.join(', ') || '-'}</p>
@@ -355,13 +345,35 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                 </div>
               </div>
 
+              {/* 商品情報（eBASE/証明書以外で商品がある場合） */}
+              {!requestData.ebaseDetails && !requestData.certificateDetails && requestData.products?.length > 0 && (
+                <div className="mt-3 border border-border rounded p-3 bg-muted/30">
+                  <p className="text-xs font-semibold text-foreground mb-2">商品情報</p>
+                  <div className="space-y-1 text-sm">
+                    {requestData.products.map((p, i) => (
+                      <p key={i} className="text-foreground">{p.name}{p.code ? `（${p.code}）` : ''}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* eBASE詳細情報（読み取り専用・依頼情報内） */}
               {requestData.ebaseDetails && (
                 <div className="mt-3 border border-border rounded p-3 bg-muted/30">
                   <p className="text-xs font-semibold text-foreground mb-2">eBASE 詳細情報</p>
                   <div className="space-y-1.5 text-sm">
+                    {requestData.products?.length > 0 && (
+                      <div className="flex">
+                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">商品:</div>
+                        <div className="text-foreground">
+                          {requestData.products.map((p, i) => (
+                            <p key={i}>{p.name}{p.code ? `（${p.code}）` : ''}</p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <div className="flex">
-                      <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">商品名:</div>
+                      <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">商品名（詳細）:</div>
                       <div className="text-foreground">{requestData.ebaseDetails.productName || '－'}</div>
                     </div>
                     {!isBusinessOnly && (
@@ -409,6 +421,16 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                 <div className="mt-3 border border-border rounded p-3 bg-muted/30">
                   <p className="text-xs font-semibold text-foreground mb-2">各種証明書 詳細情報</p>
                   <div className="space-y-1.5 text-sm">
+                    {requestData.products?.length > 0 && (
+                      <div className="flex">
+                        <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">商品:</div>
+                        <div className="text-foreground">
+                          {requestData.products.map((p, i) => (
+                            <p key={i}>{p.name}{p.code ? `（${p.code}）` : ''}</p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <div className="flex">
                       <div className="w-36 text-xs font-medium text-muted-foreground shrink-0">提出先正式名称:</div>
                       <div className="text-foreground">{requestData.certificateDetails.destName || '－'}</div>
@@ -920,7 +942,12 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                     </div>
                     <div className="flex">
                       <span className="w-16 font-medium text-foreground">CC：</span>
-                      <span className="text-foreground">{requestData?.creators?.join('、') || '－'}</span>
+                      <span className="text-foreground">
+                        {[
+                          ...(requestData?.creators || []),
+                          ...(requestData?.windowContacts || []),
+                        ].filter(Boolean).join('、') || '－'}
+                      </span>
                     </div>
                   </div>
                   <p>発信しますか？</p>
