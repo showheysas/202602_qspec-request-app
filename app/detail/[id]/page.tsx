@@ -172,7 +172,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
       return;
     }
     if (createMode === 'modified' && !modificationNote.trim()) {
-      toast({ title: 'エラー', description: '変更部分を記入してください', variant: 'destructive', duration: 3000 });
+      toast({ title: 'エラー', description: '変更・追加部分を記入してください', variant: 'destructive', duration: 3000 });
       return;
     }
     if (!requestData) return;
@@ -502,10 +502,10 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                     </div>
                   </div>
 
-                  {/* 変更部分を記入（変更して作成の場合のみ） */}
+                  {/* 変更・追加部分を記入（変更して作成の場合のみ） */}
                   {createMode === 'modified' && (
                     <div>
-                      <label className="block text-xs font-medium text-foreground mb-1">変更部分を記入 *</label>
+                      <label className="block text-xs font-medium text-foreground mb-1">変更・追加部分を記入 *</label>
                       <textarea
                         value={modificationNote}
                         onChange={(e) => setModificationNote(e.target.value)}
